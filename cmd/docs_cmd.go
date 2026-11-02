@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"sort"
 	"strings"
 
@@ -14,8 +15,9 @@ import (
 	"github.com/haidaisiganbei/pmock-cli/internal/spec"
 )
 
-func newDocsCmd(catalog *spec.Catalog) *cobra.Command {
-	return &cobra.Command{
+func newDocsCmd(catalog *spec.Catalog, skills fs.FS) *cobra.Command {
+	var markdown bool
+	cmd := &cobra.Command{
 		Use:   "docs [command...]",
 		Short: "Show flags and request fields for a command",
 		Long: `Show the generated documentation for a command, e.g.
@@ -24,7 +26,10 @@ func newDocsCmd(catalog *spec.Catalog) *cobra.Command {
   pmock-cli docs rpa task add
 
 With no argument, lists the command groups. This command writes human-readable
-text, unlike the JSON envelope used by API commands.`,
+text, unlike the JSON envelope used by API commands.
+
+--markdown prints the agent-facing reference page (the same page shipped in
+skills/), which also documents examples and response fields.`,
 		Args: cobra.ArbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			out := cmd.OutOrStdout()
@@ -33,12 +38,20 @@ text, unlike the JSON envelope used by API commands.`,
 				return nil
 			}
 			path := strings.Join(args, " ")
+			if markdown {
+				doc, ok := readReference(skills, path)
+				if !ok {
+					return exitcode.Usagef("no reference page for %q; run `pmock-cli docs` to list groups", path)
+				}
+				fmt.Fprintln(out, doc)
+				return nil
+			}
 			if path == "phone file upload" {
 				printUploadDoc(out)
 				return nil
 			}
 			if path == "mcp" {
-				c := newMCPCmd(catalog)
+				c := newMCPCmd(catalog, skills)
 				fmt.Fprintf(out, "pmock-cli mcp\n\n%s\n\nFLAGS\n%s", c.Long, c.Flags().FlagUsages())
 				return nil
 			}
@@ -69,6 +82,8 @@ text, unlike the JSON envelope used by API commands.`,
 			return nil
 		},
 	}
+	cmd.Flags().BoolVar(&markdown, "markdown", false, "print the agent reference page (markdown) instead of plain text")
+	return cmd
 }
 
 type flagInfo struct {

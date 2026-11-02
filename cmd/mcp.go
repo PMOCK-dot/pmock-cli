@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"math"
 	"os"
 	"os/signal"
@@ -28,7 +29,8 @@ import (
 const mcpInstructions = "PMOCK cloud phone management via pmock-cli. " +
 	"Each tool dispatches on an 'action' parameter; pass CLI flags via the 'params' object " +
 	"(keys are flag names without '--', values are string/number/boolean/array; nested " +
-	"objects can be passed as the 'json' key). Call pmock_help before an unfamiliar action. " +
+	"objects can be passed as the 'json' key). Call pmock_help before an unfamiliar action, " +
+	"and pmock_docs when you need examples, response fields or the meaning of numeric values. " +
 	"Destructive actions require params.yes=true. " +
 	"64-bit ids (phone, task, rpa, user ids) must be passed as JSON strings, e.g. " +
 	"params.id=\"1900000000000000123\": JSON numbers are decoded as float64 and lose digits " +
@@ -39,7 +41,8 @@ const mcpLong = `Run pmock-cli as a Model Context Protocol (MCP) server over std
 AI agents (Claude Code, Cursor, VS Code, ...) talk to this server to manage
 cloud phones, apps, files, RPA tasks and account settings. Each tool dispatches
 on an action and reuses the same command catalog as the CLI, so the MCP surface
-cannot drift from the CLI.
+cannot drift from the CLI. pmock_docs serves the embedded skills/ reference
+pages, and a failed call comes back with its reference page attached.
 
 Authentication is shared with the CLI: ~/.pmock-cli/config.json or
 PMOCK_ACCESS_KEY / PMOCK_SECRET_KEY.
@@ -74,6 +77,10 @@ type mcpArgs struct {
 
 type helpArgs struct {
 	Command string `json:"command" jsonschema:"command path without the binary name, e.g. phone start; empty for the root help"`
+}
+
+type docsArgs struct {
+	Command string `json:"command" jsonschema:"command path without the binary name, e.g. phone list; empty lists the available skills"`
 }
 
 type mcpAction struct {
@@ -118,9 +125,11 @@ func (t *mcpTool) describe() string {
 type mcpServer struct {
 	catalog *spec.Catalog
 	tools   []*mcpTool
+	// skills is the embedded reference tree; nil degrades to --help text.
+	skills fs.FS
 }
 
-func newMCPCmd(catalog *spec.Catalog) *cobra.Command {
+func newMCPCmd(catalog *spec.Catalog, skills fs.FS) *cobra.Command {
 	return &cobra.Command{
 		Use:           "mcp",
 		Short:         "Run an MCP server over stdio (for AI agents)",
@@ -132,13 +141,14 @@ func newMCPCmd(catalog *spec.Catalog) *cobra.Command {
 			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
 
-			s := &mcpServer{catalog: catalog, tools: buildMCPTools(catalog)}
+			s := &mcpServer{catalog: catalog, tools: buildMCPTools(catalog), skills: skills}
 			srv := mcp.NewServer(&mcp.Implementation{
 				Name:    "pmock-cli",
 				Version: build.Version,
 			}, &mcp.ServerOptions{Instructions: mcpInstructions})
 
 			s.registerHelp(srv)
+			s.registerDocs(srv)
 			for _, t := range s.tools {
 				s.registerTool(srv, t)
 			}
@@ -188,6 +198,53 @@ func (s *mcpServer) registerHelp(srv *mcp.Server) {
 	})
 }
 
+// registerDocs exposes the generated reference pages. The pages carry what
+// --help cannot: examples, response fields and the meaning of numeric values,
+// which is what usually fixes a wrong call in one round.
+func (s *mcpServer) registerDocs(srv *mcp.Server) {
+	mcp.AddTool(srv, &mcp.Tool{
+		Name: "pmock_docs",
+		Description: "Read the reference page of a command: purpose, flags, examples, response " +
+			"fields and error handling. Prefer this over pmock_help when you need to know what a " +
+			"response contains or how calls chain. An empty command lists the available skills.",
+	}, func(_ context.Context, _ *mcp.CallToolRequest, args docsArgs) (*mcp.CallToolResult, any, error) {
+		return s.docsResult(args.Command), nil, nil
+	})
+}
+
+// docsResult answers one pmock_docs call.
+func (s *mcpServer) docsResult(rawCommand string) *mcp.CallToolResult {
+	command := strings.TrimSpace(rawCommand)
+	if command == "" {
+		names := skillNames(s.skills)
+		if len(names) == 0 {
+			return mcpError("no embedded reference pages; use pmock_help for flag help")
+		}
+		return mcpText("Reference pages are grouped into skills:\n- " + strings.Join(names, "\n- ") +
+			"\n\nCall pmock_docs with a command path, e.g. \"phone list\".")
+	}
+	for _, p := range strings.Fields(command) {
+		if !commandTokenRe.MatchString(p) {
+			return mcpError("invalid command token: " + p)
+		}
+	}
+	doc, ok := readReference(s.skills, command)
+	if !ok {
+		return mcpError("no reference page for \"" + command + "\"; call pmock_help for raw flag help")
+	}
+	return mcpText(doc)
+}
+
+// referenceText prefers the reference page over --help: examples and response
+// fields explain a failed call better than a flag listing.
+func (s *mcpServer) referenceText(ctx context.Context, path []string) string {
+	command := strings.Join(path, " ")
+	if doc, ok := readReference(s.skills, command); ok {
+		return "[Reference: pmock-cli " + command + "]\n" + doc
+	}
+	return s.helpText(ctx, path)
+}
+
 func (s *mcpServer) callTool(ctx context.Context, t *mcpTool, args mcpArgs) (*mcp.CallToolResult, any, error) {
 	action := t.find(args.Action)
 	if action == nil {
@@ -219,7 +276,7 @@ func (s *mcpServer) callTool(ctx context.Context, t *mcpTool, args mcpArgs) (*mc
 		if text == "" {
 			text = err.Error()
 		}
-		text += "\n\n" + s.helpText(ctx, action.Path)
+		text += "\n\n" + s.referenceText(ctx, action.Path)
 		return mcpError(text), nil, nil
 	}
 
@@ -230,11 +287,14 @@ func (s *mcpServer) callTool(ctx context.Context, t *mcpTool, args mcpArgs) (*mc
 		Msg  string `json:"msg"`
 	}
 	if json.Unmarshal([]byte(stdout), &env) == nil && env.Code != 0 && env.Code != 200 {
-		text += "\n\n" + s.helpText(ctx, action.Path)
+		text += "\n\n" + s.referenceText(ctx, action.Path)
 		return mcpError(text), nil, nil
 	}
 	if text == "" {
 		text = "ok"
+	}
+	if hints := enumHints(s.catalog, action.Path, stdout); hints != "" {
+		text += "\n\n" + hints
 	}
 	return mcpText(text), nil, nil
 }

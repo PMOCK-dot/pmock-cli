@@ -8,12 +8,14 @@ import (
 	"github.com/haidaisiganbei/pmock-cli/cmd"
 )
 
-// openapi carries the vendored spec and the product overlay. Embedding keeps
-// the binary self-contained, which is the main reason for choosing Go.
+// assets carries the vendored spec, the product overlay and the generated
+// agent skills. Embedding keeps the binary self-contained, which is the main
+// reason for choosing Go: the docs an agent reads always match the binary it
+// runs, even when the checkout is not around.
 //
-//go:embed openapi/*.yaml
-var openapiFS embed.FS
+//go:embed openapi/*.yaml skills
+var assetsFS embed.FS
 
 func main() {
-	os.Exit(cmd.Execute(openapiFS))
+	os.Exit(cmd.Execute(assetsFS))
 }

@@ -63,9 +63,10 @@ type RequestBody struct {
 	Content  map[string]MediaType `yaml:"content"`
 }
 
-// MediaType wraps a schema.
+// MediaType wraps a schema and its documented example.
 type MediaType struct {
-	Schema *Schema `yaml:"schema"`
+	Schema  *Schema `yaml:"schema"`
+	Example any     `yaml:"example"`
 }
 
 // Response is an HTTP response.

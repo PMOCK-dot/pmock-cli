@@ -92,6 +92,11 @@ type Command struct {
 
 	Body           *Schema
 	BodySchemaName string
+
+	// Resp is the resolved 200 response schema and RespSchemaName its
+	// components name. The generated skill pages render field tables from it.
+	Resp           *Schema
+	RespSchemaName string
 }
 
 // Usage is the last command-path segment.
@@ -158,6 +163,9 @@ func (c *Command) CanWait() bool { return c.Async != "" }
 // Catalog is the full command surface.
 type Catalog struct {
 	Commands []*Command
+	// Doc is the OpenAPI document the catalog was built from. Skill rendering
+	// needs it to resolve response $refs into field tables.
+	Doc *Document
 }
 
 // BuildCatalog merges the OpenAPI operations with the overlay and derives
@@ -189,7 +197,7 @@ func BuildCatalog(doc *Document, overlay *Overlay) (*Catalog, error) {
 	}
 
 	sort.Slice(cmds, func(i, j int) bool { return cmds[i].FullPath() < cmds[j].FullPath() })
-	return &Catalog{Commands: cmds}, nil
+	return &Catalog{Commands: cmds, Doc: doc}, nil
 }
 
 func buildCommand(doc *Document, ref OperationRef, ov *CommandOverride) (*Command, error) {
@@ -234,6 +242,7 @@ func buildCommand(doc *Document, ref OperationRef, ov *CommandOverride) (*Comman
 	if err != nil {
 		return nil, err
 	}
+	resp, respName := ResponseSchema(doc, ref.Op)
 
 	return &Command{
 		Key:             ref.Key(),
@@ -253,7 +262,26 @@ func buildCommand(doc *Document, ref OperationRef, ov *CommandOverride) (*Comman
 		ComplexRequired: complexRequired,
 		Body:            body,
 		BodySchemaName:  bodyName,
+		Resp:            resp,
+		RespSchemaName:  respName,
 	}, nil
+}
+
+// ResponseSchema returns the resolved 200 JSON schema and its components name.
+// Operations whose spec has no response schema yield (nil, "").
+func ResponseSchema(doc *Document, op *Operation) (*Schema, string) {
+	if op == nil {
+		return nil, ""
+	}
+	r, ok := op.Responses["200"]
+	if !ok {
+		return nil, ""
+	}
+	mt, ok := r.Content["application/json"]
+	if !ok || mt.Schema == nil {
+		return nil, ""
+	}
+	return doc.Resolve(mt.Schema), strings.TrimPrefix(mt.Schema.Ref, "#/components/schemas/")
 }
 
 func buildFlags(doc *Document, op *Operation, body *Schema) ([]*Flag, []string, error) {

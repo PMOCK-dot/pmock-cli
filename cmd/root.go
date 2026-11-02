@@ -88,7 +88,7 @@ func Execute(assets fs.FS) int {
 		return exitcode.Runtime
 	}
 
-	root := newRoot(catalog)
+	root := newRoot(catalog, subSkills(assets))
 	root.SetOut(os.Stdout)
 	root.SetErr(os.Stderr)
 
@@ -109,14 +109,36 @@ func Execute(assets fs.FS) int {
 	return code
 }
 
-func newRoot(catalog *spec.Catalog) *cobra.Command {
-	return newRootWith(catalog, true)
+// subSkills returns the embedded skills tree, or nil when the assets carry
+// none (unit tests build a tree without one and fall back to --help text).
+func subSkills(assets fs.FS) fs.FS {
+	if assets == nil {
+		return nil
+	}
+	sub, err := fs.Sub(assets, "skills")
+	if err != nil {
+		return nil
+	}
+	if _, err := fs.Stat(sub, "pmock-shared"); err != nil {
+		return nil
+	}
+	return sub
+}
+
+func newRoot(catalog *spec.Catalog, skills fs.FS) *cobra.Command {
+	return newRootWithSkills(catalog, true, skills)
 }
 
 // newRootWith builds the command tree. includeMCP is false while the MCP
 // server executes a tool, otherwise `pmock-cli mcp` would be registered inside
 // every tool invocation.
 func newRootWith(catalog *spec.Catalog, includeMCP bool) *cobra.Command {
+	return newRootWithSkills(catalog, includeMCP, nil)
+}
+
+// newRootWithSkills is newRootWith plus the embedded skills tree. skills may be
+// nil: the commands then fall back to --help text instead of reference pages.
+func newRootWithSkills(catalog *spec.Catalog, includeMCP bool, skills fs.FS) *cobra.Command {
 	g := &globals{}
 
 	root := &cobra.Command{
@@ -171,14 +193,15 @@ Use "pmock-cli docs <command>" for the full flag table of any command.`,
 	root.AddCommand(newConfigCmd(g))
 	root.AddCommand(newAuthCmd(g))
 	root.AddCommand(newDoctorCmd(g))
-	root.AddCommand(newDocsCmd(catalog))
+	root.AddCommand(newDocsCmd(catalog, skills))
 	root.AddCommand(newCommandsCmd(catalog))
 	root.AddCommand(newVersionCmd())
+	root.AddCommand(newSkillsCmd(catalog))
 
 	addCatalog(root, catalog, g)
 	addExtraCommands(root, g)
 	if includeMCP {
-		root.AddCommand(newMCPCmd(catalog))
+		root.AddCommand(newMCPCmd(catalog, skills))
 	}
 	return root
 }

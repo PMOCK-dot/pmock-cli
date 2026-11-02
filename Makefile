@@ -9,7 +9,7 @@ LDFLAGS := -s -w \
 	-X $(MODULE)/internal/build.Date=$(DATE)
 PREFIX  ?= /usr/local
 
-.PHONY: build test vet fmt check install clean snapshot run update-spec package npm
+.PHONY: build test vet fmt check install clean snapshot run update-spec package npm skills skills-check
 
 build:
 	go build -trimpath -ldflags "$(LDFLAGS)" -o bin/$(BINARY) .
@@ -38,6 +38,14 @@ run: build
 
 update-spec:
 	./scripts/update-spec.sh
+
+# Regenerate the committed agent skills tree from the command catalog.
+skills:
+	go run . skills generate --out skills
+
+# Fail when skills/ no longer matches the catalog (run in CI).
+skills-check:
+	@go run . skills generate --out skills --check
 
 package:
 	./scripts/package.sh
