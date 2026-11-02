@@ -28,7 +28,9 @@ func phoneFileUploadPage() ManualPage {
 2. 只上传服务端缺失的分片，因此中断后重跑同一命令即可续传；
 3. 全部分片就位后 ` + "`upload-push`" + ` 合并并推送到手机。
 
-` + "`--type app`" + ` 时返回的 ` + "`data.envFileId`" + ` 可以直接传给 ` + "`pmock-cli app install --file-id`" + `。
+` + "`--type app`" + ` 时返回的 ` + "`data.envFileId`" + ` 就是 ` + "`app install --file-id`" + ` 要的值；
+安装还需要 ` + "`--id`" + `（目标机器）和 APK 元信息 ` + "`--apk-name`" + `、` + "`--apk-pkg`" + `、
+` + "`--apk-version-code`" + `、` + "`--apk-version-name`" + `，见 [app install](../../pmock-app/references/app-install.md)。
 
 ## 示例
 
@@ -36,9 +38,11 @@ func phoneFileUploadPage() ManualPage {
 # 普通文件
 pmock-cli phone file upload --id 123 --file ./video.mp4
 
-# APK，随后安装
+# APK，随后安装（--file-id 取上一步的 data.envFileId）
 pmock-cli phone file upload --id 123 --file ./app.apk --type app
-pmock-cli app install --file-id <envFileId>
+pmock-cli app install --id 123 --file-id <envFileId> \
+  --apk-name TikTok --apk-pkg com.zhiliaoapp.musically \
+  --apk-version-code 2024101 --apk-version-name 41.2.1
 
 # 指定目录，并先看计划不实际传输
 pmock-cli phone file upload --id 123 --file ./video.mp4 --dest /sdcard/Movies --dry-run
