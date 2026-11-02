@@ -210,7 +210,8 @@ pmock-cli rpa task add --template-id 9 --name daily --json @task.json --wait
 ```bash
 pmock-cli --help
 pmock-cli phone --help
-pmock-cli docs phone start
+pmock-cli docs phone start              # 纯文本参数说明
+pmock-cli docs phone list --markdown    # Agent reference 页（示例 + 响应字段）
 pmock-cli commands
 ```
 
@@ -339,9 +340,28 @@ pmock-cli rpa task add --template-id 9 --name daily --json @task.json --wait
 ```
 
 - 支持 `pmock_phone`、`pmock_phone_action`、`pmock_phone_file`、`pmock_app`、`pmock_network`、`pmock_rpa_template`、`pmock_rpa_task`、`pmock_product`、`pmock_brand`、`pmock_team`、`pmock_task`、`pmock_account`
-- `pmock_help` 可以查询任意命令的完整参数
+- `pmock_help` 可以查询任意命令的完整参数；`pmock_docs` 返回该命令的完整参考页（示例、响应字段、错误处理）
 - 删除、重置等破坏性动作需要 `params.yes = true`
 - **64 位 ID 必须用字符串传**（`"id": "1900000000000000123"`），不要写成 JSON 数字。MCP SDK 按 `float64` 解析数字，超过 2^53 会丢精度，服务端只会看到四舍五入后的 ID，最终报「手机不存在」。直接调用 CLI 时 `--id` 是字符串参数，不受影响
+
+### Skills（外部 Agent 技能包）
+
+仓库根目录的 `skills/` 是给 Claude Code、Cursor、Trae、Cline 这类 Agent 用的技能包，
+和 `pmock-cli commands` 出自同一份 OpenAPI 目录，所以文档不会和命令漂移：
+
+```bash
+npx skills@latest add haidaisiganbei/pmock-cli -g --all -y
+```
+
+- `skills/pmock-shared/` — 认证、响应信封、退出码、风险确认等通用规则（手写）
+- `skills/pmock-phone/` — 云手机命令索引，外加每个命令一页 reference
+
+维护：
+
+```bash
+make skills          # 按 openapi/ + overlay.yaml 重新生成
+make skills-check    # CI 校验生成物是否过期
+```
 
 ---
 

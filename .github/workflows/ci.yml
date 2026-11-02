@@ -31,6 +31,8 @@ jobs:
         run: go test -race -count=1 ./...
       - name: build
         run: go build -trimpath ./...
+      - name: skills up to date
+        run: make skills-check
 
   npm-package:
     runs-on: ubuntu-latest
