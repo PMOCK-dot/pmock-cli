@@ -95,29 +95,40 @@ MCP SDK 把工具参数解码进 `map[string]any`，JSON 数字一律变成 `flo
 
 ## 发布
 
-### GitHub Release
+### 一条命令发版
 
 ```bash
-git tag v0.1.4
-git push origin v0.1.4
+git tag v0.1.6
+git push origin v0.1.6
 ```
 
-`release.yml` 调用 GoReleaser 生成：
+`release.yml` 只有一个入口，推 tag 后依次执行两个 job：
 
-- darwin/arm64、darwin/amd64
-- linux/amd64、linux/arm64
-- windows/amd64
-- `checksums.txt`
+1. `goreleaser` — 生成 GitHub Release：
 
-### npm
+   - darwin/arm64、darwin/amd64
+   - linux/amd64、linux/arm64
+   - windows/amd64
+   - `checksums.txt`
+
+2. `publish-npm` — `needs: goreleaser`，构建并发布 npm 包，用的是
+   `NPM_TOKEN` secret。
+
+`publish-npm` 放在 `release.yml` 而不是依赖 `npm.yml` 的 `release: published`：
+GoReleaser 用 `GITHUB_TOKEN` 创建 Release，而 GitHub 不会为这类 token 触发的事件
+启动其他 workflow，所以那个触发器从来没生效过。
+
+### 单独重发 npm
+
+发布失败或需要补平台时，重跑即可（脚本幂等，已存在的版本跳过）：
 
 ```bash
-VERSION=0.1.4 make npm
-VERSION=0.1.4 ./scripts/publish-npm.sh
+VERSION=0.1.6 make npm
+VERSION=0.1.6 ./scripts/publish-npm.sh
 ```
 
-或配置 GitHub Secret `NPM_TOKEN`，手动运行 `npm.yml`。
-发布脚本是幂等的：已存在的版本跳过；单个平台失败不会阻塞 wrapper。
+也可以手动跑 `npm.yml`（workflow_dispatch，输入不带 `v` 的版本号），或在 GitHub 上
+手动发布 draft Release 触发它。单个平台失败不会阻塞 wrapper。
 
 当前已知限制：`pmock-cli-win32-x64` 被 npm spam 审核拦截，Windows 暂时使用 zip。
 

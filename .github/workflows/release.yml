@@ -26,3 +26,35 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publishing lives here instead of npm.yml's `release: published` trigger:
+  # GoReleaser creates the GitHub release with GITHUB_TOKEN, and GitHub does not
+  # start workflows for events raised by that token, so the release trigger
+  # never fired and npm had to be dispatched by hand.
+  #
+  # Depends on goreleaser so a failed release never reaches the registry. The
+  # publish script is idempotent: re-running it after a partial failure (for
+  # example a platform package rejected by npm spam detection) publishes only
+  # what is still missing.
+  publish-npm:
+    needs: goreleaser
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      VERSION: ${{ github.ref_name }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+      - name: build packages
+        run: VERSION="${VERSION#v}" make npm
+      - name: publish packages
+        run: VERSION="${VERSION#v}" ./scripts/publish-npm.sh

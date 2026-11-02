@@ -1,3 +1,9 @@
+# Fallback entry point for re-publishing npm packages by hand.
+#
+# normal releases publish npm from release.yml's publish-npm job: GoReleaser
+# creates the GitHub release with GITHUB_TOKEN, and GitHub does not start
+# workflows for events raised by that token, so the `release: published`
+# trigger below only fires for releases published manually in the UI.
 name: npm
 
 on:
