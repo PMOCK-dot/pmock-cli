@@ -93,7 +93,22 @@ type mcpAction struct {
 type mcpTool struct {
 	Name    string
 	Summary string
+	// Depth is how many leading path segments this tool owns. Action names are
+	// the remaining segments, so nested commands (phone group list) do not
+	// collide with their own group (phone list).
+	Depth   int
 	Actions []mcpAction
+}
+
+// actionName is the key an agent passes as action= for this command.
+func (t *mcpTool) actionName(parts []string) string {
+	if t.Depth <= 0 {
+		return strings.Join(parts, "-")
+	}
+	if len(parts) <= t.Depth {
+		return parts[len(parts)-1]
+	}
+	return strings.Join(parts[t.Depth:], "-")
 }
 
 func (t *mcpTool) find(name string) *mcpAction {
@@ -355,17 +370,19 @@ var (
 
 func buildMCPTools(catalog *spec.Catalog) []*mcpTool {
 	tools := []*mcpTool{
-		{Name: "pmock_phone", Summary: "Manage PMOCK cloud phones: list, create, start, stop, restart, reset, renew, screenshot, GPS, ADB info, network config and more."},
-		{Name: "pmock_phone_action", Summary: "UI automation actions on a running cloud phone: click, double-click, long-click, swipe, drag, input and app start/stop/uninstall."},
-		{Name: "pmock_phone_file", Summary: "Files on a cloud phone: scan, download, and upload a local file or APK (multipart upload with MD5)."},
-		{Name: "pmock_app", Summary: "Applications on cloud phones: list, categories, install, upgrade list and operate."},
-		{Name: "pmock_network", Summary: "Proxies and network detection: list, detect, set network."},
-		{Name: "pmock_rpa_template", Summary: "RPA templates: market, team list, collect and delete."},
-		{Name: "pmock_rpa_task", Summary: "RPA tasks: add, list, get, details, update, stop, retry and delete."},
-		{Name: "pmock_product", Summary: "Products, SKUs and pricing."},
-		{Name: "pmock_brand", Summary: "Cloud phone brands."},
-		{Name: "pmock_team", Summary: "Team members and phone authorization."},
-		{Name: "pmock_task", Summary: "Background task records."},
+		{Name: "pmock_phone", Depth: 1, Summary: "Manage PMOCK cloud phones: list, create, start, stop, restart, reset, renew, screenshot, GPS, ADB info, rename, retag, change plan, groups (group-*), ownership transfer (transfer-*) and more."},
+		{Name: "pmock_phone_action", Depth: 2, Summary: "UI automation actions on a running cloud phone: click, double-click, long-click, swipe, drag, input and app start/stop/uninstall."},
+		{Name: "pmock_phone_file", Depth: 2, Summary: "Files on a cloud phone: scan, download, task-status, and upload a local file or APK (multipart upload with MD5)."},
+		{Name: "pmock_app", Depth: 1, Summary: "Applications on cloud phones: list, categories, install, upgrade list, operate, and the shared team library (team-app-*)."},
+		{Name: "pmock_network", Depth: 1, Summary: "Proxies: list, add, update, remove, detail, check, groups (group-*), detect and set network."},
+		{Name: "pmock_tag", Depth: 1, Summary: "Tags: list, create, update and delete."},
+		{Name: "pmock_billing", Depth: 0, Summary: "Wallet and billing: balance, recharge config and orders, top-up (costly), consumption and recharge records."},
+		{Name: "pmock_rpa_template", Depth: 2, Summary: "RPA templates: market, team list, collect and delete."},
+		{Name: "pmock_rpa_task", Depth: 2, Summary: "RPA tasks: add, list, get, details, update, stop, retry and delete."},
+		{Name: "pmock_product", Depth: 1, Summary: "Products, SKUs and pricing."},
+		{Name: "pmock_brand", Depth: 1, Summary: "Cloud phone brands."},
+		{Name: "pmock_team", Depth: 1, Summary: "Team members and phone authorization."},
+		{Name: "pmock_task", Depth: 1, Summary: "Background task records."},
 		{Name: "pmock_account", Summary: "CLI account and configuration: config init/show and auth status."},
 	}
 	byName := make(map[string]*mcpTool, len(tools))
@@ -385,6 +402,10 @@ func buildMCPTools(catalog *spec.Catalog) []*mcpTool {
 			return byName["pmock_app"]
 		case path[0] == "network":
 			return byName["pmock_network"]
+		case path[0] == "tag":
+			return byName["pmock_tag"]
+		case path[0] == "order" || path[0] == "payment" || path[0] == "user":
+			return byName["pmock_billing"]
 		case hasPrefix(path, []string{"rpa", "template"}):
 			return byName["pmock_rpa_template"]
 		case hasPrefix(path, []string{"rpa", "task"}):
@@ -411,15 +432,11 @@ func buildMCPTools(catalog *spec.Catalog) []*mcpTool {
 		if tool == nil {
 			continue
 		}
-		name := c.PathParts[len(c.PathParts)-1]
-		switch c.PathParts[0] {
-		case "config":
-			name = "config-" + name
-		case "auth":
-			name = "auth-" + name
-		}
 		tool.Actions = append(tool.Actions, mcpAction{
-			Name: name, Path: append([]string{}, c.PathParts...), Summary: c.Summary, Risk: c.Risk,
+			Name:    tool.actionName(c.PathParts),
+			Path:    append([]string{}, c.PathParts...),
+			Summary: c.Summary,
+			Risk:    c.Risk,
 		})
 	}
 

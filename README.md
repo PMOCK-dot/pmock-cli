@@ -205,6 +205,54 @@ pmock-cli rpa task list
 pmock-cli rpa task add --template-id 9 --name daily --json @task.json --wait
 ```
 
+### 分组、标签与改名
+
+```bash
+pmock-cli phone group list
+pmock-cli phone group create --name 投放A
+pmock-cli phone move-group --id 7 --phone-ids 1,2        # -1 表示移出分组
+
+pmock-cli tag list
+pmock-cli tag create --tag-name tiktok --color '#ff0000'
+pmock-cli phone update-tags --phone-id 123 --mode append --tag-ids 1,2
+pmock-cli phone batch-update-tags --phone-ids 1,2,3 --mode replace --tag-ids 4
+
+pmock-cli phone update-name --id 123 --name demo-01
+pmock-cli phone batch-update-remark --phone-ids 1,2 --mode update --remark "第一批"
+```
+
+标签的 `--mode` 取 `append`（追加）/ `replace`（替换）/ `clear`（清空）；备注的 `--mode` 取 `update` / `clear`。
+
+### 代理
+
+```bash
+pmock-cli network list
+pmock-cli network add --json '[{"scheme":"socks5","server":"1.2.3.4","port":1080}]'
+pmock-cli network check --network-id 5
+pmock-cli network group list
+```
+
+### 钱包与账单
+
+```bash
+pmock-cli user balance              # 查余额
+pmock-cli order consume-record      # 消费流水
+pmock-cli order recharge-record     # 充值流水
+pmock-cli payment recharge-config   # 可充值套餐
+pmock-cli payment recharge --team-id 1 --method wallet_pay \
+  --recharge-type fixed --recharge-id 9      # 真实扣款，属 costly
+```
+
+### 转让手机（三步）
+
+```bash
+pmock-cli phone transfer send-code --phone-ids 1,2 --transfer-options 7 \
+  --target-boss-email boss@team.com --target-team-name 新团队
+pmock-cli phone transfer confirm --phone-ids 1,2 --transfer-options 7 \
+  --verification-code 123456 --yes                                      # 不可逆
+pmock-cli phone transfer cancel --phone-ids 1,2
+```
+
 更多命令：
 
 ```bash

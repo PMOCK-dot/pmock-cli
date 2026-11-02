@@ -56,18 +56,26 @@ func (g *globals) config() (*config.Config, error) {
 }
 
 var groupShort = map[string]string{
-	"phone":        "Cloud phone assets, lifecycle, files and screen operations",
-	"phone action": "UI automation actions (click, swipe, input, ...)",
-	"phone file":   "Files inside a cloud phone",
-	"app":          "Applications installed on cloud phones",
-	"network":      "Proxies and network detection",
-	"rpa":          "RPA templates and tasks",
-	"rpa template": "RPA flow templates",
-	"rpa task":     "RPA scheduled tasks",
-	"product":      "Products, SKUs and pricing",
-	"brand":        "Phone brands",
-	"team":         "Team members and authorization",
-	"task":         "Background task records",
+	"phone":          "Cloud phone assets, lifecycle, files and screen operations",
+	"phone action":   "UI automation actions (click, swipe, input, ...)",
+	"phone file":     "Files inside a cloud phone",
+	"phone group":    "Cloud phone groups",
+	"phone transfer": "Transfer phone ownership in three steps",
+	"app":            "Applications installed on cloud phones",
+	"app team-app":   "Shared team app library",
+	"network":        "Proxies and network detection",
+	"network group":  "Proxy groups",
+	"rpa":            "RPA templates and tasks",
+	"rpa template":   "RPA flow templates",
+	"rpa task":       "RPA scheduled tasks",
+	"product":        "Products, SKUs and pricing",
+	"brand":          "Phone brands",
+	"team":           "Team members and authorization",
+	"task":           "Background task records",
+	"tag":            "Tags for organizing phones",
+	"order":          "Consumption and recharge records",
+	"payment":        "Wallet balance, recharge config and top-up",
+	"user":           "Account wallet",
 }
 
 // Execute builds the command tree and returns the process exit code.

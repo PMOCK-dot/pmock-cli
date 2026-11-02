@@ -303,3 +303,200 @@ commands:
     async: rpa
     examples:
       - pmock-cli rpa task add --template-id 456 --name daily --json '{"taskList":[{"phoneId":123}]}'
+
+  # --- 2026-11 开放能力接口更新 -------------------------------------------
+  # 手机信息的细粒度更新，替代 update 里的大而全参数
+
+  - op: POST /open/api/phone/updateName
+    path: [phone, update-name]
+    risk: write
+    examples:
+      - pmock-cli phone update-name --id 123 --name demo-01
+
+  - op: POST /open/api/phone/updateRemark
+    path: [phone, update-remark]
+    risk: write
+
+  - op: POST /open/api/phone/batchUpdateRemark
+    path: [phone, batch-update-remark]
+    risk: write
+
+  - op: POST /open/api/phone/updateTags
+    path: [phone, update-tags]
+    risk: write
+
+  - op: POST /open/api/phone/batchUpdateTags
+    path: [phone, batch-update-tags]
+    risk: write
+
+  # 换套餐会改变计费，和续费一样按 costly 处理
+  - op: POST /open/api/phone/updateSku
+    path: [phone, update-sku]
+    risk: costly
+
+  - op: POST /open/api/phone/updateEnvSetting
+    path: [phone, update-env-setting]
+    risk: write
+
+  # 手机分组
+  - op: GET /open/api/phone/group/list
+    path: [phone, group, list]
+    risk: read
+
+  - op: POST /open/api/phone/group/create
+    path: [phone, group, create]
+    risk: write
+    examples:
+      - pmock-cli phone group create --json '{"name":"投放A"}'
+
+  - op: POST /open/api/phone/group/update
+    path: [phone, group, update]
+    risk: write
+
+  - op: POST /open/api/phone/group/delete
+    path: [phone, group, delete]
+    risk: destructive
+
+  - op: POST /open/api/phone/moveGroup
+    path: [phone, move-group]
+    risk: write
+
+  # 转让改成三步：发码 -> 确认 -> 取消；确认后归属变更，不可逆
+  - op: POST /open/api/phone/transfer/sendCode
+    path: [phone, transfer, send-code]
+    risk: write
+
+  - op: POST /open/api/phone/transfer/confirm
+    path: [phone, transfer, confirm]
+    risk: destructive
+    examples:
+      - pmock-cli phone transfer confirm --id 123 --code 123456 --yes
+
+  - op: POST /open/api/phone/transfer/cancel
+    path: [phone, transfer, cancel]
+    risk: write
+
+  # 文件任务的进度查询，与 upload 命令配合使用
+  - op: POST /open/api/phone/file/task/status
+    path: [phone, file, task-status]
+    risk: read
+
+  # V2 上传协议：暂时保持内部，等 phone file upload 迁移过来再暴露
+  - op: POST /open/api/phone/v2/init/uploadTask
+    path: [phone, file, upload-init-v2]
+    risk: write
+    internal: true
+
+  - op: POST /open/api/phone/v2/mergeFileAndPush
+    path: [phone, file, upload-push-v2]
+    risk: write
+    internal: true
+
+  # 标签
+  - op: GET /open/api/tag/list
+    path: [tag, list]
+    risk: read
+    aliases: [ls]
+
+  - op: POST /open/api/tag/create
+    path: [tag, create]
+    risk: write
+    examples:
+      - pmock-cli tag create --json '{"name":"tiktok","color":"#ff0000"}'
+
+  - op: POST /open/api/tag/update
+    path: [tag, update]
+    risk: write
+
+  - op: POST /open/api/tag/delete
+    path: [tag, delete]
+    risk: destructive
+    aliases: [rm]
+
+  # 团队应用库
+  - op: POST /open/api/app/teamApp/list
+    path: [app, team-app, list]
+    risk: read
+    aliases: [ls]
+
+  - op: POST /open/api/app/teamApp/create
+    path: [app, team-app, add]
+    risk: write
+
+  - op: POST /open/api/app/teamApp/delete
+    path: [app, team-app, remove]
+    risk: destructive
+
+  - op: POST /open/api/app/teamApp/deleteVersion
+    path: [app, team-app, remove-version]
+    risk: destructive
+
+  # 代理
+  - op: POST /open/api/network/add
+    path: [network, add]
+    risk: write
+    examples:
+      - pmock-cli network add --json '[{"scheme":"socks5","server":"1.2.3.4","port":1080}]'
+
+  - op: POST /open/api/network/update
+    path: [network, update]
+    risk: write
+
+  - op: POST /open/api/network/remove
+    path: [network, remove]
+    risk: destructive
+
+  - op: POST /open/api/network/detail
+    path: [network, detail]
+    risk: read
+
+  - op: POST /open/api/network/check
+    path: [network, check]
+    risk: read
+
+  - op: GET /open/api/network/group/list
+    path: [network, group, list]
+    risk: read
+
+  - op: POST /open/api/network/group/create
+    path: [network, group, create]
+    risk: write
+
+  - op: POST /open/api/network/group/update
+    path: [network, group, update]
+    risk: write
+
+  - op: POST /open/api/network/group/delete
+    path: [network, group, delete]
+    risk: destructive
+
+  # 商品与套餐
+  - op: POST /open/api/product/getChangeableSkuList
+    path: [product, changeable-sku-list]
+    risk: read
+
+  # 钱包、充值、账单
+  - op: GET /open/api/user/userMoney
+    path: [user, balance]
+    risk: read
+
+  - op: GET /open/api/payment/getRechargeConfig
+    path: [payment, recharge-config]
+    risk: read
+
+  - op: POST /open/api/payment/getRechargeOrder
+    path: [payment, recharge-order]
+    risk: read
+
+  # 真实扣款，执行前必须确认金额
+  - op: POST /open/api/payment/money/recharge
+    path: [payment, recharge]
+    risk: costly
+
+  - op: GET /open/api/order/consumeRecord
+    path: [order, consume-record]
+    risk: read
+
+  - op: GET /open/api/order/rechargeRecord
+    path: [order, recharge-record]
+    risk: read

@@ -56,7 +56,7 @@ func flag(t *testing.T, c *Command, name string) *Flag {
 
 func TestCatalogCoversEveryOperation(t *testing.T) {
 	catalog := loadCatalog(t)
-	if got, want := len(catalog.Commands), 60; got != want {
+	if got, want := len(catalog.Commands), 102; got != want {
 		t.Fatalf("commands = %d, want %d", got, want)
 	}
 	seen := map[string]bool{}

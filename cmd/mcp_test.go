@@ -35,33 +35,71 @@ func resultText(t *testing.T, res *mcp.CallToolResult) string {
 }
 
 func TestBuildMCPTools(t *testing.T) {
-	tools := buildMCPTools(testCatalog(t))
-	if len(tools) != 12 {
-		t.Fatalf("tools = %d, want 12", len(tools))
-	}
-	total := 0
+	cat := testCatalog(t)
+	tools := buildMCPTools(cat)
+
 	paths := map[string]bool{}
 	for _, tool := range tools {
 		if len(tool.Actions) == 0 {
 			t.Errorf("tool %s has no actions", tool.Name)
+			continue
 		}
+		names := map[string]bool{}
 		for _, a := range tool.Actions {
-			total++
 			key := strings.Join(a.Path, " ")
 			if paths[key] {
 				t.Errorf("path %q appears in more than one action", key)
 			}
 			paths[key] = true
+			// Two commands sharing an action name would make one of them
+			// unreachable: phone list and phone group list both want "list".
+			if names[a.Name] {
+				t.Errorf("tool %s has two actions named %q", tool.Name, a.Name)
+			}
+			names[a.Name] = true
 		}
 	}
-	if total != 63 {
-		t.Fatalf("actions = %d, want 63", total)
+
+	// Every public command must be reachable through exactly one action.
+	for _, c := range cat.Commands {
+		if c.Internal {
+			continue
+		}
+		if !paths[c.FullPath()] {
+			t.Errorf("command %q has no MCP action", c.FullPath())
+		}
 	}
-	if !paths["phone file upload"] {
-		t.Error("phone file upload action is missing")
+
+	for _, want := range []string{"phone file upload", "auth status", "config init"} {
+		if !paths[want] {
+			t.Errorf("action for %q is missing", want)
+		}
 	}
-	if !paths["auth status"] || !paths["config init"] {
-		t.Error("account actions are missing")
+}
+
+func TestMCPActionNamesDisambiguateNestedCommands(t *testing.T) {
+	tools := buildMCPTools(testCatalog(t))
+	cases := []struct{ tool, action, path string }{
+		{"pmock_phone", "list", "phone list"},
+		{"pmock_phone", "group-list", "phone group list"},
+		{"pmock_phone", "transfer-send-code", "phone transfer send-code"},
+		{"pmock_app", "list", "app list"},
+		{"pmock_app", "team-app-list", "app team-app list"},
+		{"pmock_network", "group-list", "network group list"},
+		{"pmock_billing", "payment-recharge", "payment recharge"},
+		{"pmock_billing", "user-balance", "user balance"},
+		{"pmock_tag", "list", "tag list"},
+	}
+	for _, c := range cases {
+		tool := mcpToolByName(t, tools, c.tool)
+		a := tool.find(c.action)
+		if a == nil {
+			t.Errorf("%s has no action %q", c.tool, c.action)
+			continue
+		}
+		if got := strings.Join(a.Path, " "); got != c.path {
+			t.Errorf("%s/%s routes to %q, want %q", c.tool, c.action, got, c.path)
+		}
 	}
 }
 

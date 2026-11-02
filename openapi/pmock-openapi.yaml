@@ -2824,6 +2824,2043 @@ paths:
               schema:
                 $ref: '#/components/schemas/RAddTaskResVO'
       security: []
+  /open/api/phone/updateName:
+    post:
+      summary: 修改手机名称
+      deprecated: false
+      description: 修改指定手机的名称
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneNameUpdateReqVOUpdate'
+              description: ''
+            example:
+              id: 1
+              name: Sample name
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/updateRemark:
+    post:
+      summary: 修改手机备注
+      deprecated: false
+      description: 修改指定手机的备注
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneRemarkUpdateReqVOUpdate'
+              description: ''
+            example:
+              id: 1
+              remark: Sample remark
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/batchUpdateRemark:
+    post:
+      summary: 批量修改手机备注
+      deprecated: false
+      description: 批量修改或清空手机备注
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchUpdateRemarkReqVO'
+              description: ''
+            example:
+              phoneIds:
+                - 0
+              mode: update
+              remark: Sample remark
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/updateTags:
+    post:
+      summary: 修改手机标签
+      deprecated: false
+      description: 修改指定手机的标签
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneTagsUpdateReqVO'
+              description: ''
+            example:
+              phoneId: 1
+              mode: update
+              tagIds:
+                - 0
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/batchUpdateTags:
+    post:
+      summary: 批量修改手机标签
+      deprecated: false
+      description: 批量修改多台手机的标签
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchUpdateTagsReqVO'
+              description: ''
+            example:
+              phoneIds:
+                - 0
+              mode: update
+              tagIds:
+                - 0
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RBatchUpdateTagsResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  successCount: 0
+                  failCount: 0
+                  failPhoneIds:
+                    - 0
+                status: finish
+      security: []
+  /open/api/phone/updateSku:
+    post:
+      summary: 修改手机套餐
+      deprecated: false
+      description: 变更手机当前套餐（SKU）
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneSkuUpdateReqVO'
+              description: ''
+            example:
+              id: 1
+              skuId: 1
+              renewType: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/updateEnvSetting:
+    post:
+      summary: 修改手机环境设置
+      deprecated: false
+      description: 修改手机的经纬度、归属地、语言、时区等环境设置
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneEnvSettingUpdateReqVO'
+              description: ''
+            example:
+              phoneId: 1
+              latitude: '37.7749'
+              longitude: '-122.4194'
+              location: California, US
+              timezone: America/Los_Angeles
+              language: en-US
+              latLngFollowIp: false
+              locationFollowIp: false
+              timezoneFollowIp: false
+              languageFollowIp: false
+              nextPowerOnEffective: 0
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/group/list:
+    get:
+      summary: 获取手机分组列表
+      deprecated: false
+      description: 获取手机分组及其手机数量
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RListPhoneGroupListResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  - id: 1
+                    code: PM0001
+                    groupName: Group A
+                    type: '1'
+                    phoneCount: 0
+                status: finish
+      security: []
+  /open/api/phone/group/create:
+    post:
+      summary: 创建手机分组
+      deprecated: false
+      description: 创建一个手机分组
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePhoneGroupReqVO'
+              description: ''
+            example:
+              name: Sample name
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/group/update:
+    post:
+      summary: 修改手机分组
+      deprecated: false
+      description: 修改手机分组名称
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePhoneGroupReqVO'
+              description: ''
+            example:
+              id: 1
+              name: Sample name
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/group/delete:
+    post:
+      summary: 删除手机分组
+      deprecated: false
+      description: 删除手机分组，分组内的手机将变为未分组
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DelPhoneGroupReqVO'
+              description: ''
+            example:
+              id: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/moveGroup:
+    post:
+      summary: 移动手机到分组
+      deprecated: false
+      description: 将手机移动到指定分组，-1 表示移动到未分组
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneUpdateGroupReqVO'
+              description: ''
+            example:
+              id: 1
+              phoneIds:
+                - 0
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/tag/list:
+    get:
+      summary: 获取标签列表
+      deprecated: false
+      description: 按绑定手机数量倒序获取标签列表
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RListTagResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  - id: 1
+                    tagName: VIP
+                    useCount: 0
+                    color: '#FF0000'
+                    createTime: '2026-11-02 10:00:00'
+                    updateTime: '2026-11-02 10:00:00'
+                status: finish
+      security: []
+  /open/api/tag/create:
+    post:
+      summary: 创建标签
+      deprecated: false
+      description: 创建手机标签
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreateReqVO'
+              description: ''
+            example:
+              tagName: VIP
+              color: '#FF0000'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/tag/update:
+    post:
+      summary: 修改标签
+      deprecated: false
+      description: 修改指定标签的名称或颜色
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagUpdateReqVO'
+              description: ''
+            example:
+              id: 1
+              tagName: VIP
+              color: '#FF0000'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/tag/delete:
+    post:
+      summary: 删除标签
+      deprecated: false
+      description: 删除手机标签
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagDeleteReqVO'
+              description: ''
+            example:
+              id: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/transfer/sendCode:
+    post:
+      summary: 转让手机-发送验证码
+      deprecated: false
+      description: 向接收团队的 BOSS 邮箱发送验证码，仅 BOSS 可操作
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneTransferSendCodeReqVO'
+              description: ''
+            example:
+              targetTeamId: 1
+              targetBossEmail: user@example.com
+              targetTeamName: ''
+              phoneIds:
+                - 1
+                - 2
+              transferOptions: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RListPhoneTransferResultItemVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  - phoneId: 1
+                    phoneName: Phone 1
+                    phoneCode: PM0001
+                    success: false
+                    failReason: ''
+                    proxyTransferred: false
+                    tagsTransferred: false
+                    remarkTransferred: false
+                status: finish
+      security: []
+  /open/api/phone/transfer/confirm:
+    post:
+      summary: 转让手机-确认转让
+      deprecated: false
+      description: 使用邮箱验证码确认手机转让，仅 BOSS 可操作
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneTransferConfirmReqVO'
+              description: ''
+            example:
+              targetTeamId: 1
+              targetBossEmail: user@example.com
+              targetTeamName: ''
+              phoneIds:
+                - 1
+                - 2
+              transferOptions: 1
+              verificationCode: '123456'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RPhoneTransferResultResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  successCount: 0
+                  failCount: 0
+                  successList:
+                    - phoneId: 1
+                      phoneName: Phone 1
+                      phoneCode: PM0001
+                      success: false
+                      failReason: ''
+                      proxyTransferred: false
+                      tagsTransferred: false
+                      remarkTransferred: false
+                  failList:
+                    - phoneId: 1
+                      phoneName: Phone 1
+                      phoneCode: PM0001
+                      success: false
+                      failReason: ''
+                      proxyTransferred: false
+                      tagsTransferred: false
+                      remarkTransferred: false
+                  createTime: '2026-11-02 10:00:00'
+                status: finish
+      security: []
+  /open/api/phone/transfer/cancel:
+    post:
+      summary: 转让手机-取消转让
+      deprecated: false
+      description: 取消待确认的手机转让，仅 BOSS 可操作
+      tags: [手机操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneTransferCancelReqVO'
+              description: ''
+            example:
+              phoneIds:
+                - 0
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/phone/file/task/status:
+    post:
+      summary: 获取文件任务状态
+      deprecated: false
+      description: 查询文件上传、下载任务的处理状态
+      tags: [文件上传操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelectFileTaskStatusReqVO'
+              description: ''
+            example:
+              operateParam: envFileId=1
+              phoneId: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RFileTaskStatusResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  taskStatus: 1
+                  taskStatusName: ''
+                  fileDownUrl: ''
+                status: finish
+      security: []
+  /open/api/phone/v2/init/uploadTask:
+    post:
+      summary: 初始化上传任务（V2）
+      deprecated: false
+      description: 初始化文件分片上传任务（V2）
+      tags: [文件上传操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiOssFileUploadStsReqVO'
+              description: ''
+            example:
+              phoneId: 1
+              fileType: 1
+              fileName: example.apk
+              totalSize: 1024
+              chunkSize: 1024
+              md5: d41d8cd98f00b204e9800998ecf8427e
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RFileInitUploadResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  uploadId: upload-id
+                  objectKey: uploads/2026/11/example.apk
+                  uploadType: ''
+                  totalSize: 1024
+                  chunkSize: 1024
+                  chunkNum: 0
+                  expireTime: '2026-12-31 23:59:59'
+                  storageConfigId: 1
+                  partUploadUrl:
+                    - partNumber: 1
+                      uploadUrl: ''
+                  exitPartList:
+                    - partNumber: 1
+                      lastModified: ''
+                      eTag: ETag
+                      size: 1024
+                status: finish
+      security: []
+  /open/api/phone/v2/mergeFileAndPush:
+    post:
+      summary: 合并分片并推送（V2）
+      deprecated: false
+      description: 合并文件分片并推送到手机（V2）
+      tags: [文件上传操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiOssMergeFileReqVO'
+              description: ''
+            example:
+              phoneId: 1
+              storageConfigId: 1
+              uploadId: upload-id
+              objectKey: uploads/2026/11/example.apk
+              fileName: example.apk
+              fileType: 1
+              md5: d41d8cd98f00b204e9800998ecf8427e
+              size: 1024
+              pushDestDir: /sdcard/Download
+              liveImageUrl: https://example.com/live.png
+              partETags:
+                - eTag: ETag
+                  partNumber: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ROssMergeFileResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  phoneId: 1
+                  envFileId: 0
+                  taskId: 0
+                  fileUrl: https://example.com/file.apk
+                status: finish
+      security: []
+  /open/api/app/teamApp/list:
+    post:
+      summary: 获取团队应用列表
+      deprecated: false
+      description: 分页获取团队应用库列表
+      tags: [应用操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+        - name: pageSize
+          in: query
+          description: 每页显示的记录数
+          required: false
+          schema:
+            type: integer
+        - name: pageNum
+          in: query
+          description: 当前页码
+          required: false
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhoneAppListReqVO'
+              description: ''
+            example:
+              pageSize: 0
+              pageNum: 0
+              id: 1
+              apkName: Example App
+              apkPkg: com.example.app
+              onlyShowInstalled: false
+              cateCode: -1
+              shelfStatus: 0
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableDataInfoTeamAppListResVO'
+              example:
+                traceId: ''
+                total: 0
+                rows:
+                  - id: 1
+                    apkName: Example App
+                    apkPkg: com.example.app
+                    apkIconUrl: https://example.com/icon.png
+                    weight: 0
+                    appVersionList:
+                      - id: 1
+                        apkVersionName: 1.0.0
+                        apkVersionCode: 1
+                        installStatus: -1
+                        shelfStatus: 0
+                        md5: d41d8cd98f00b204e9800998ecf8427e
+                        autoInstallFlag: 0
+                    installStatus: -1
+                    shelfStatus: 0
+                    autoInstall: false
+                code: 0
+                msg: ''
+      security: []
+  /open/api/app/teamApp/create:
+    post:
+      summary: 添加应用到团队应用库
+      deprecated: false
+      description: 向团队应用库添加应用版本
+      tags: [应用操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppAddReqVO'
+              description: ''
+            example:
+              originName: example.apk
+              name: Sample name
+              url: https://example.com/file.apk
+              md5: d41d8cd98f00b204e9800998ecf8427e
+              size: 1024
+              apkName: Example App
+              apkPkg: com.example.app
+              apkVersionName: 1.0.0
+              apkVersionCode: 1
+              apkIconUrl: https://example.com/icon.png
+              weight: 0
+              shelfStatus: 1
+              cateCode: -1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RLong'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: 0
+                status: finish
+      security: []
+  /open/api/app/teamApp/delete:
+    post:
+      summary: 从团队应用库删除应用
+      deprecated: false
+      description: 删除应用及其全部版本
+      tags: [应用操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppDeleteReqVO'
+              description: ''
+            example:
+              id: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/app/teamApp/deleteVersion:
+    post:
+      summary: 删除应用版本
+      deprecated: false
+      description: 从团队应用库删除指定的应用版本
+      tags: [应用操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppVersionDeleteReqVO'
+              description: ''
+            example:
+              versionId: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/network/add:
+    post:
+      summary: 新增代理
+      deprecated: false
+      description: 批量新增代理资源
+      tags: [网络操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkAddBatchReqVO'
+              description: ''
+            example:
+              data:
+                - host: 127.0.0.1
+                  port: 1080
+                  account: proxy_user
+                  password: proxy_password
+                  groupId: 1
+                  type: '1'
+                  detectDataType: 1
+                  checkType: dbip
+                  way: '1'
+                  region: California
+                  status: '0'
+                  ip: ''
+                  countryName: United States
+                  countryCode: US
+                  latitude: '37.7749'
+                  longitude: '-122.4194'
+                  language: en-US
+                  timezone: America/Los_Angeles
+                  udp: 0
+                  remark: Sample remark
+                  expireTime: 1767225599000
+                  syncNetworkParams: 1
+                  syncLanguage: 0
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/network/update:
+    post:
+      summary: 修改代理
+      deprecated: false
+      description: 修改代理资源
+      tags: [网络操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkUpdateReqVOUpdate'
+              description: ''
+            example:
+              id: 1
+              name: Sample name
+              host: 127.0.0.1
+              groupId: 1
+              port: 1080
+              account: proxy_user
+              password: proxy_password
+              type: '1'
+              detectDataType: 1
+              checkType: dbip
+              way: '1'
+              region: California
+              status: '0'
+              ip: ''
+              countryName: United States
+              countryCode: US
+              latitude: '37.7749'
+              longitude: '-122.4194'
+              language: en-US
+              timezone: America/Los_Angeles
+              udp: 0
+              remark: Sample remark
+              expireTime: 1767225599000
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/network/remove:
+    post:
+      summary: 删除代理
+      deprecated: false
+      description: 批量删除代理资源
+      tags: [网络操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkRemoveBatchReqVO'
+              description: ''
+            example:
+              idList:
+                - 0
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/network/detail:
+    post:
+      summary: 获取代理详情
+      deprecated: false
+      description: 获取代理资源详情
+      tags: [网络操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkInfoReqVO'
+              description: ''
+            example:
+              networkId: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RNetworkInfoResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  id: 1
+                  name: Sample name
+                  teamId: 1
+                  num: 0
+                  host: 127.0.0.1
+                  port: 1080
+                  account: proxy_user
+                  password: proxy_password
+                  bindCount: 0
+                  detectDataType: 1
+                  checkType: dbip
+                  type: '1'
+                  way: '1'
+                  countryName: United States
+                  countryCode: US
+                  region: California
+                  status: 0
+                  ip: ''
+                  latitude: '37.7749'
+                  longitude: '-122.4194'
+                  language: en-US
+                  timezone: America/Los_Angeles
+                  udp: 0
+                  groupId: 1
+                  groupName: Group A
+                  remark: Sample remark
+                  expireTime: '2026-12-31 23:59:59'
+                status: finish
+      security: []
+  /open/api/network/check:
+    post:
+      summary: 检测代理
+      deprecated: false
+      description: 检测代理资源并保存检测状态
+      tags: [网络操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkInfoReqVO'
+              description: ''
+            example:
+              networkId: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RBoolean'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: false
+                status: finish
+      security: []
+  /open/api/network/group/list:
+    get:
+      summary: 获取代理分组列表
+      deprecated: false
+      description: 获取代理分组及其代理数量
+      tags: [网络操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RListPhoneNetworkListResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  - id: 1
+                    groupName: Group A
+                    networkCount: 0
+                    code: all_group
+                    type: system_group
+                status: finish
+      security: []
+  /open/api/network/group/create:
+    post:
+      summary: 创建代理分组
+      deprecated: false
+      description: 创建一个代理分组
+      tags: [网络操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNetworkGroupReqVO'
+              description: ''
+            example:
+              name: Sample name
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/network/group/update:
+    post:
+      summary: 修改代理分组
+      deprecated: false
+      description: 修改代理分组名称
+      tags: [网络操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNetworkGroupReqVO'
+              description: ''
+            example:
+              id: 1
+              name: Sample name
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/network/group/delete:
+    post:
+      summary: 删除代理分组
+      deprecated: false
+      description: 删除代理分组，分组内的代理将变为未分组
+      tags: [网络操作]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DelNetworkGroupReqVO'
+              description: ''
+            example:
+              id: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RVoid'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: null
+                status: finish
+      security: []
+  /open/api/user/userMoney:
+    get:
+      summary: 获取钱包余额
+      deprecated: false
+      description: 获取团队钱包余额
+      tags: [账户与计费]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RBigDecimal'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data: 0
+                status: finish
+      security: []
+  /open/api/payment/getRechargeConfig:
+    get:
+      summary: 获取充值配置
+      deprecated: false
+      description: 获取充值金额范围及固定金额列表
+      tags: [账户与计费]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RRechargeConfigResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  minRechargeAmount: 0
+                  maxRechargeAmount: 0
+                  fixedRechargeList:
+                    - id: 1
+                      amount: 10
+                      orderNum: 0
+                      rechargeType: fixed
+                      selected: 0
+                      fee: 0
+                  rechargeOrderInfo:
+                    actualPrice: 0
+                    discountRate: 0
+                    discount: 0
+                    discountAmount: 0
+                    feeRate: 0
+                    feeType: none
+                    fee: 0
+                    amount: 10
+                    giftAmount: 0
+                    actualAmount: 0
+                    hasCanUseCoupon: false
+                    hasCoupon: false
+                    couponInfo:
+                      id: 1
+                      name: Sample name
+                      description: Sample description
+                      usePrice: 0
+                      giftPrice: 0
+                      validStartTime: ''
+                      validEndTime: ''
+                status: finish
+      security: []
+  /open/api/payment/getRechargeOrder:
+    post:
+      summary: 获取充值订单详情
+      deprecated: false
+      description: 预览充值订单，包含折扣、手续费等信息
+      tags: [账户与计费]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RechargeOrderReqVO'
+              description: ''
+            example:
+              rechargeType: fixed
+              rechargeId: 1
+              amount: 10
+              teamId: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RRechargeOrderInfoResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  actualPrice: 0
+                  discountRate: 0
+                  discount: 0
+                  discountAmount: 0
+                  feeRate: 0
+                  feeType: none
+                  fee: 0
+                  amount: 10
+                  giftAmount: 0
+                  actualAmount: 0
+                  hasCanUseCoupon: false
+                  hasCoupon: false
+                  couponInfo:
+                    id: 1
+                    name: Sample name
+                    description: Sample description
+                    usePrice: 0
+                    giftPrice: 0
+                    validStartTime: ''
+                    validEndTime: ''
+                status: finish
+      security: []
+  /open/api/payment/money/recharge:
+    post:
+      summary: 钱包充值
+      deprecated: false
+      description: 按金额为团队钱包充值
+      tags: [账户与计费]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentReqVO'
+              description: ''
+            example:
+              rechargeType: fixed
+              rechargeId: 1
+              money: 10
+              method: air_alipay_cn_qr
+              methodExt:
+                key: ''
+              couponId: 1
+              teamId: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RWalletRechargeResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  showMode: url
+                  showContent: https://example.com/pay
+                  orderId: 1
+                  money: 10
+                  expireTime: '2026-12-31 23:59:59'
+                status: finish
+      security: []
+  /open/api/order/consumeRecord:
+    get:
+      summary: 获取消费记录
+      deprecated: false
+      description: 获取团队消费账单记录
+      tags: [账户与计费]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+        - name: orderType
+          in: query
+          description: 订单类型
+          required: false
+          schema:
+            type: integer
+        - name: idOrCode
+          in: query
+          description: 订单 ID 或手机编号
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 支付状态：0=未支付，1=支付成功，2=已退款，3=支付关闭，4=支付失败，5=待发货，6=待收货，7=完成，8=权益回收且退款，9=仅退款，10=仅关单，11=订单关闭，99=异常订单
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+              enum: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 99]
+        - name: operateType
+          in: query
+          description: 操作类型：RECHARGE_WALLET=钱包充值，USER_ORDER=用户下单，SYSTEM_CHARGING=系统扣费，BUY_BOX=盲盒，AI_REFUND=AI 退款
+          required: false
+          schema:
+            type: integer
+        - name: createUserId
+          in: query
+          description: 创建人 ID
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: channelCode
+          in: query
+          description: 支付类型
+          required: false
+          schema:
+            type: string
+        - name: startTime
+          in: query
+          description: 扣费开始时间
+          required: false
+          schema:
+            type: string
+        - name: endTime
+          in: query
+          description: 扣费结束时间
+          required: false
+          schema:
+            type: string
+        - name: teamId
+          in: query
+          description: 团队 ID
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: payMethod
+          in: query
+          description: 支付方式
+          required: false
+          schema:
+            type: string
+        - name: userIds
+          in: query
+          description: 创建订单的用户 ID 列表
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: orderIds
+          in: query
+          description: 订单 ID 列表
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: spuType
+          in: query
+          description: 商品类型
+          required: false
+          schema:
+            type: integer
+        - name: platform
+          in: query
+          description: 平台来源
+          required: false
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          description: 每页显示的记录数
+          required: false
+          schema:
+            type: integer
+        - name: pageNum
+          in: query
+          description: 当前页码
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableDataInfoPayOrderConsumeListResVO'
+              example:
+                traceId: ''
+                total: 0
+                rows:
+                  - id: 1
+                    channelCode: alipay
+                    channelOrderNo: '202611020001'
+                    skuId: 1
+                    price: 0
+                    orderType: 0
+                    status: 0
+                    operateType: 0
+                    successTime: '2026-11-02 10:00:00'
+                    createTime: '2026-11-02 10:00:00'
+                    createUser: admin
+                    description: Sample description
+                    remark: Sample remark
+                    channelName: Alipay
+                    payMethod: alipay
+                    methodName: Alipay
+                    chargingCycle: ''
+                    chargeType: 0
+                    chargeTypeName: ''
+                    fee: 0
+                    actualPrice: 0
+                    orderPrice: 0
+                    cycleMinutes: ''
+                    cycleName: ''
+                    detailsInfo: ''
+                    refundOrderId: 0
+                    originalOrderId: 0
+                    refunded: false
+                    userId: 1
+                    createBy: 1
+                    createName: admin
+                    teamId: 1
+                    teamName: Team A
+                code: 0
+                msg: ''
+      security: []
+  /open/api/order/rechargeRecord:
+    get:
+      summary: 获取充值记录
+      deprecated: false
+      description: 获取团队充值账单记录
+      tags: [账户与计费]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+        - name: id
+          in: query
+          description: 订单 ID
+          required: false
+          schema:
+            type: string
+        - name: startTime
+          in: query
+          description: 充值开始时间
+          required: false
+          schema:
+            type: string
+        - name: endTime
+          in: query
+          description: 充值结束时间
+          required: false
+          schema:
+            type: string
+        - name: channelCode
+          in: query
+          description: 充值支付类型：system=系统，airwallex=空中云汇，alipay=支付宝，wechat=微信，stripe=Stripe，wechatGlobal=微信支付国际版，whop=Whop，stablePay=StablePay，paypal=PayPal
+          required: false
+          schema:
+            type: string
+            enum:
+              - system
+              - airwallex
+              - alipay
+              - wechat
+              - stripe
+              - wechatGlobal
+              - whop
+              - stablePay
+              - paypal
+        - name: payMethod
+          in: query
+          description: 支付方式
+          required: false
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          description: 每页显示的记录数
+          required: false
+          schema:
+            type: integer
+        - name: pageNum
+          in: query
+          description: 当前页码
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableDataInfoPayOrderRechargeListResVO'
+              example:
+                traceId: ''
+                total: 0
+                rows:
+                  - id: 1
+                    channelCode: alipay
+                    channelOrderNo: '202611020001'
+                    skuId: 1
+                    price: 0
+                    orderType: 0
+                    status: 0
+                    operateType: 0
+                    successTime: '2026-11-02 10:00:00'
+                    createTime: '2026-11-02 10:00:00'
+                    createUser: admin
+                    description: Sample description
+                    remark: Sample remark
+                    channelName: Alipay
+                    payMethod: alipay
+                    methodName: Alipay
+                    chargingCycle: ''
+                    chargeType: 0
+                    chargeTypeName: ''
+                    fee: 0
+                    actualPrice: 0
+                    orderPrice: 0
+                    cycleMinutes: ''
+                    cycleName: ''
+                    detailsInfo: ''
+                    refundOrderId: 0
+                    originalOrderId: 0
+                    refunded: false
+                code: 0
+                msg: ''
+      security: []
+  /open/api/product/getChangeableSkuList:
+    post:
+      summary: 获取当前套餐及可变更套餐
+      deprecated: false
+      description: 获取手机当前套餐（SKU）及可变更套餐列表
+      tags: [商品]
+      parameters:
+        - name: chameleon
+          in: header
+          description: ''
+          example: '{{chameleon}}'
+          schema:
+            type: string
+            default: '{{chameleon}}'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetChangeableSkuListReqVO'
+              description: ''
+            example:
+              phoneId: 1
+              skuId: 1
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RChangeableInfoResVO'
+              example:
+                traceId: ''
+                code: 0
+                msg: ''
+                data:
+                  currentSkuInfo:
+                    skuId: 1
+                    skuName: Standard
+                    cycleEnum: ''
+                    cycleName: ''
+                    cyclePrice: 0
+                    chargeLimit: 0
+                    cycle: 0
+                    extraPrice:
+                      - id: 1
+                        name: Sample name
+                        langNames:
+                          key: ''
+                        price: 0
+                        cycleEnum: ''
+                        cycleDesc: ''
+                        langCycleDesc:
+                          key: ''
+                    comparePrice: 0
+                    cycleDays: 0
+                    expireTime: '2026-12-31 23:59:59'
+                  changeableSkuList:
+                    - skuId: 1
+                      skuName: Standard
+                      cycleEnum: ''
+                      cycleName: ''
+                      cyclePrice: 0
+                      chargeLimit: 0
+                      cycle: 0
+                      extraPrice:
+                        - id: 1
+                          name: Sample name
+                          langNames:
+                            key: ''
+                          price: 0
+                          cycleEnum: ''
+                          cycleDesc: ''
+                          langCycleDesc:
+                            key: ''
+                      comparePrice: 0
+                      cycleDays: 0
+                      expireTime: '2026-12-31 23:59:59'
+                status: finish
+      security: []
 components:
   schemas:
     PhoneCreateReqVOCreate:
@@ -4761,6 +6798,9 @@ components:
           type: string
           description: 应用名称
           pattern: ^[^%]*$
+        apkPkg:
+          type: string
+          description: apk 包名
         onlyShowInstalled:
           type: boolean
           description: 只显示已经安装的应用, 默认值：false
@@ -5842,6 +7882,2101 @@ components:
         - code
         - msg
         - status
+    PhoneNameUpdateReqVOUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+          format: int64
+        name:
+          type: string
+          description: 手机名称
+          maxLength: 32
+      required:
+        - id
+        - name
+    PhoneRemarkUpdateReqVOUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+          format: int64
+        remark:
+          type: string
+          description: 手机备注
+      required:
+        - id
+    BatchUpdateRemarkReqVO:
+      type: object
+      properties:
+        phoneIds:
+          type: array
+          items:
+            type: integer
+          description: 手机ID列表
+          minItems: 1
+        mode:
+          type: string
+          description: 模式：update(修改), clear(清空)
+          pattern: update|clear
+        remark:
+          type: string
+          description: 备注内容，mode=clear时为null
+          maxLength: 200
+      required:
+        - phoneIds
+        - mode
+    PhoneTagsUpdateReqVO:
+      type: object
+      properties:
+        phoneId:
+          type: integer
+          description: 手机ID
+          format: int64
+        mode:
+          type: string
+          description: 模式：append(追加), replace(替换), clear(清空)
+          pattern: append|replace|clear
+        tagIds:
+          type: array
+          items:
+            type: integer
+          description: 标签ID列表，mode=clear时可为null
+      required:
+        - phoneId
+        - mode
+    BatchUpdateTagsReqVO:
+      type: object
+      properties:
+        phoneIds:
+          type: array
+          items:
+            type: integer
+          description: 手机ID列表
+          minItems: 1
+        mode:
+          type: string
+          description: 模式：append(追加), replace(替换), clear(清空)
+          pattern: append|replace|clear
+        tagIds:
+          type: array
+          items:
+            type: integer
+          description: 标签ID列表，mode=clear时为null
+      required:
+        - phoneIds
+        - mode
+    RBatchUpdateTagsResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/BatchUpdateTagsResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态，表示本次是即时完成还是等待中：finish=已完成，pending=等待中
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    PhoneSkuUpdateReqVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+          format: int64
+        skuId:
+          type: integer
+          description: 套餐（SKU）ID
+          format: int64
+        renewType:
+          type: integer
+          description: 续费类型：1-手动续费，2-自动续费
+      required:
+        - id
+        - skuId
+    PhoneEnvSettingUpdateReqVO:
+      type: object
+      properties:
+        phoneId:
+          type: integer
+          description: 手机ID
+          format: int64
+        latitude:
+          type: string
+          description: 纬度
+        longitude:
+          type: string
+          description: 经度
+        location:
+          type: string
+          description: 归属地
+        timezone:
+          type: string
+          description: 时区
+        language:
+          type: string
+          description: 语言
+        latLngFollowIp:
+          type: boolean
+          description: 经纬度是否跟随 IP：true=跟随，false=自定义
+        locationFollowIp:
+          type: boolean
+          description: 归属地是否跟随IP
+        timezoneFollowIp:
+          type: boolean
+          description: 时区是否跟随IP
+        languageFollowIp:
+          type: boolean
+          description: 语言是否跟随IP
+        nextPowerOnEffective:
+          type: integer
+          description: 是否下次开机生效 0-立即生效，1-下次开机生效
+      required:
+        - phoneId
+        - latLngFollowIp
+        - locationFollowIp
+        - timezoneFollowIp
+        - languageFollowIp
+    RListPhoneGroupListResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneGroupListResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态,代表本次是即时完成或者等待中的状态,finish或者pending
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    CreatePhoneGroupReqVO:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 分组名称
+      required:
+        - name
+    UpdatePhoneGroupReqVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 分组id
+          format: int64
+        name:
+          type: string
+          description: 分组名称
+      required:
+        - id
+        - name
+    DelPhoneGroupReqVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 分组id
+          format: int64
+      required:
+        - id
+    PhoneUpdateGroupReqVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 分组id
+          format: int64
+        phoneIds:
+          type: array
+          items:
+            type: integer
+          description: 手机id列表
+      required:
+        - id
+        - phoneIds
+    RListTagResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态，表示本次是即时完成还是等待中：finish=已完成，pending=等待中
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    TagCreateReqVO:
+      type: object
+      properties:
+        tagName:
+          type: string
+          description: 标签名称
+        color:
+          type: string
+          description: 颜色
+      required:
+        - tagName
+    TagUpdateReqVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 标签ID
+          format: int64
+        tagName:
+          type: string
+          description: 标签名称
+        color:
+          type: string
+          description: 颜色
+      required:
+        - id
+        - tagName
+    TagDeleteReqVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 标签ID
+          format: int64
+      required:
+        - id
+    PhoneTransferSendCodeReqVO:
+      type: object
+      properties:
+        targetTeamId:
+          type: integer
+          description: 接收团队ID（若传则优先使用，可替代邮箱+团队名）
+          format: int64
+        targetBossEmail:
+          type: string
+          description: 接收团队BOSS邮箱（未传 targetTeamId 时必填）
+          format: email
+        targetTeamName:
+          type: string
+          description: 接收团队名称（未传 targetTeamId 时必填）
+        phoneIds:
+          type: array
+          items:
+            type: integer
+          description: 已选手机ID列表
+          minItems: 1
+        transferOptions:
+          type: integer
+          description: 转让选项位掩码：1代理 2标签 4备注
+      required:
+        - phoneIds
+        - transferOptions
+    RListPhoneTransferResultItemVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneTransferResultItemVO'
+            description: 转让手机结果项
+          description: 数据
+        status:
+          type: string
+          description: 状态，表示本次是即时完成还是等待中：finish=已完成，pending=等待中
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    PhoneTransferConfirmReqVO:
+      type: object
+      properties:
+        targetTeamId:
+          type: integer
+          description: 接收团队ID（若传则优先使用，可替代邮箱+团队名）
+          format: int64
+        targetBossEmail:
+          type: string
+          description: 接收团队BOSS邮箱（未传 targetTeamId 时必填）
+          format: email
+        targetTeamName:
+          type: string
+          description: 接收团队名称（未传 targetTeamId 时必填）
+        phoneIds:
+          type: array
+          items:
+            type: integer
+          description: 已选手机ID列表
+          minItems: 1
+        transferOptions:
+          type: integer
+          description: 转让选项位掩码：1代理 2标签 4备注
+        verificationCode:
+          type: string
+          description: 邮箱验证码
+      required:
+        - phoneIds
+        - transferOptions
+        - verificationCode
+    RPhoneTransferResultResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/PhoneTransferResultResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态，表示本次是即时完成还是等待中：finish=已完成，pending=等待中
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    PhoneTransferCancelReqVO:
+      type: object
+      properties:
+        phoneIds:
+          type: array
+          items:
+            type: integer
+          description: 已选手机ID列表
+          minItems: 1
+      required:
+        - phoneIds
+    SelectFileTaskStatusReqVO:
+      type: object
+      properties:
+        operateParam:
+          type: string
+          description: 文件操作请求参数：安装应用时为 apkPkg（安装包包名），文件上传时为 envFileId，下载文件时为 downId
+        phoneId:
+          type: integer
+          description: 手机id
+          format: int64
+      required:
+        - operateParam
+        - phoneId
+    RFileTaskStatusResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/FileTaskStatusResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态,代表本次是即时完成或者等待中的状态,finish或者pending
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    ApiOssFileUploadStsReqVO:
+      type: object
+      properties:
+        phoneId:
+          type: integer
+          description: 手机ID
+          format: int64
+        fileType:
+          type: integer
+          description: 文件类型
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 8
+            - 9
+            - 10
+            - 11
+            - 12
+            - 101
+            - 102
+            - 103
+            - 104
+            - 105
+            - 106
+            - 107
+            - 108
+            - 109
+            - 110
+            - 111
+            - 112
+            - 113
+            - 114
+            - 115
+            - 116
+            - 117
+        fileName:
+          type: string
+          description: 文件名
+        totalSize:
+          type: integer
+          description: 文件大小（byte）
+          format: int64
+        chunkSize:
+          type: integer
+          description: 分片大小（byte）
+        md5:
+          type: string
+          description: 文件 MD5
+      required:
+        - fileType
+        - fileName
+        - totalSize
+        - chunkSize
+    RFileInitUploadResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/FileInitUploadResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态，表示本次是即时完成还是等待中：finish=已完成，pending=等待中
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    ApiOssMergeFileReqVO:
+      type: object
+      properties:
+        phoneId:
+          type: integer
+          description: 手机ID
+          format: int64
+        storageConfigId:
+          type: integer
+          description: 存储配置ID
+          format: int64
+        uploadId:
+          type: string
+          description: OSS 上传 ID，由 getUploadSts 接口返回
+        objectKey:
+          type: string
+          description: OSS 对象完整路径，由 getUploadSts 接口返回
+        fileName:
+          type: string
+          description: 文件名
+        fileType:
+          type: integer
+          description: 文件类型
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 8
+            - 9
+            - 10
+            - 11
+            - 12
+            - 101
+            - 102
+            - 103
+            - 104
+            - 105
+            - 106
+            - 107
+            - 108
+            - 109
+            - 110
+            - 111
+            - 112
+            - 113
+            - 114
+            - 115
+            - 116
+            - 117
+        md5:
+          type: string
+          description: 文件 MD5
+        size:
+          type: integer
+          description: 文件大小（单位：B）
+          minimum: 1
+          format: int64
+        pushDestDir:
+          type: string
+          description: 推送目标文件夹
+        liveImageUrl:
+          type: string
+          description: 直播文件预览图
+        partETags:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartETagVO'
+          description: 分片上传 ETag 列表
+      required:
+        - uploadId
+        - objectKey
+        - fileName
+        - fileType
+        - md5
+        - size
+        - partETags
+    ROssMergeFileResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/OssMergeFileResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态，表示本次是即时完成还是等待中：finish=已完成，pending=等待中
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    TableDataInfoTeamAppListResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        total:
+          type: integer
+          description: 总记录数
+          format: int64
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamAppListResVO'
+          description: 列表数据
+        code:
+          type: integer
+          description: 消息状态码
+        msg:
+          type: string
+          description: 消息内容
+    AppAddReqVO:
+      type: object
+      properties:
+        originName:
+          type: string
+          description: 原始文件名称
+        name:
+          type: string
+          description: 文件名称（原始文件名称md5值+文件后缀）
+        url:
+          type: string
+          description: 文件url
+        md5:
+          type: string
+          description: 文件 MD5
+        size:
+          type: integer
+          description: 文件大小（单位：B）
+          minimum: 1
+          format: int64
+        apkName:
+          type: string
+          description: apk名称
+        apkPkg:
+          type: string
+          description: apk包名
+        apkVersionName:
+          type: string
+          description: apk版本名称
+        apkVersionCode:
+          type: integer
+          description: apk版本号
+        apkIconUrl:
+          type: string
+          description: apk图标url
+        weight:
+          type: integer
+          description: 权重，越大越靠前，默认：0
+          default: 0
+        shelfStatus:
+          type: integer
+          description: 应用状态：1-上架，0=下架
+          default: 1
+        cateCode:
+          type: integer
+          description: 所属分类编码：-1代表未分类
+          default: -1
+      required:
+        - originName
+        - name
+        - url
+        - md5
+        - size
+        - apkName
+        - apkPkg
+        - apkVersionName
+        - apkVersionCode
+        - apkIconUrl
+    AppDeleteReqVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 应用id
+          format: int64
+      required:
+        - id
+    AppVersionDeleteReqVO:
+      type: object
+      properties:
+        versionId:
+          type: integer
+          description: 应用版本id
+          format: int64
+      required:
+        - versionId
+    NetworkAddBatchReqVO:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NetworkAddReqVO'
+          description: 网络信息集合
+      required:
+        - data
+    NetworkUpdateReqVOUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键id
+          format: int64
+        name:
+          type: string
+          description: 网络名称
+        host:
+          type: string
+          description: ip/域名
+        groupId:
+          type: integer
+          description: 网络分组ID
+          format: int64
+        port:
+          type: integer
+          description: 端口
+        account:
+          type: string
+          description: 账号
+        password:
+          type: string
+          description: 密码
+        type:
+          type: string
+          description: 代理类型 1.socks5 2.https 3.http
+        detectDataType:
+          type: integer
+          description: 检测数据类型：1=跟随 IP，2=自定义
+        checkType:
+          type: string
+          description: 'IP查询渠道: dbip/ip2location/maxmind/ipapi，不传不修改'
+        way:
+          type: string
+          description: 使用方式 1.静态ip 2.动态ip
+        region:
+          type: string
+          description: 地区
+        status:
+          type: string
+          description: 状态 0=未检测 1=检测通过 2=检测失败
+        ip:
+          type: string
+          description: 实际ip地址
+        countryName:
+          type: string
+          description: 国家
+        countryCode:
+          type: string
+          description: 国家代码
+        latitude:
+          type: string
+          description: 纬度
+        longitude:
+          type: string
+          description: 经度
+        language:
+          type: string
+          description: 语言
+        timezone:
+          type: string
+          description: 时区
+        udp:
+          type: integer
+          description: 是否开启UDP
+        remark:
+          type: string
+          description: 备注
+        expireTime:
+          type: integer
+          description: 代理到期时间（毫秒时间戳）
+          format: int64
+    NetworkRemoveBatchReqVO:
+      type: object
+      properties:
+        idList:
+          type: array
+          items:
+            type: integer
+          description: 主键id集合
+      required:
+        - idList
+    NetworkInfoReqVO:
+      type: object
+      properties:
+        networkId:
+          type: integer
+          description: 网络主键id
+          format: int64
+      required:
+        - networkId
+    RNetworkInfoResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/NetworkInfoResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态,代表本次是即时完成或者等待中的状态,finish或者pending
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    RBoolean:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          type: boolean
+          description: 数据
+        status:
+          type: string
+          description: 状态,代表本次是即时完成或者等待中的状态,finish或者pending
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    RListPhoneNetworkListResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneNetworkListResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态,代表本次是即时完成或者等待中的状态,finish或者pending
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    CreateNetworkGroupReqVO:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 分组名称
+      required:
+        - name
+    UpdateNetworkGroupReqVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 分组id
+          format: int64
+        name:
+          type: string
+          description: 分组名称
+      required:
+        - id
+        - name
+    DelNetworkGroupReqVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 分组id
+          format: int64
+      required:
+        - id
+    RBigDecimal:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          type: number
+          description: 数据
+        status:
+          type: string
+          description: 状态,代表本次是即时完成或者等待中的状态,finish或者pending
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    RRechargeConfigResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/RechargeConfigResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态,代表本次是即时完成或者等待中的状态,finish或者pending
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    RechargeOrderReqVO:
+      type: object
+      properties:
+        rechargeType:
+          type: string
+          description: 金额类型
+        rechargeId:
+          type: integer
+          description: 充值金额配置id
+          format: int64
+        amount:
+          type: number
+          description: 金额
+        teamId:
+          type: integer
+          description: 团队id
+          format: int64
+      required:
+        - rechargeType
+    RRechargeOrderInfoResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/RechargeOrderInfoResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态,代表本次是即时完成或者等待中的状态,finish或者pending
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    PaymentReqVO:
+      type: object
+      properties:
+        rechargeType:
+          type: string
+          description: 金额类型
+        rechargeId:
+          type: integer
+          description: 充值金额配置id
+          format: int64
+        money:
+          type: number
+          description: 金额
+          minimum: 0
+        method:
+          type: string
+          description: 支付方式
+          enum:
+            - air_alipay_cn_qr
+            - air_wechat_qr
+            - wallet_pay
+            - offline_pay
+            - system_gift
+            - alipay_pc_direct
+            - wechat_native
+            - stripe_wechat_qr
+            - stripe_alipay_qr
+            - wechat_global_native
+            - coupon_gift
+            - whop_checkout_configurations
+            - stripe_car_checkout
+            - stripe_googlepay_checkout
+            - stable_pay_checkout
+            - rebate_withdraw
+            - paypal_checkout
+        methodExt:
+          $ref: '#/components/schemas/MapString'
+          description: 流程模板参数构建结果
+        couponId:
+          type: integer
+          description: 优惠券id
+          format: int64
+        teamId:
+          type: integer
+          description: 团队id
+          format: int64
+      required:
+        - rechargeType
+        - method
+        - teamId
+    RWalletRechargeResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/WalletRechargeResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态,代表本次是即时完成或者等待中的状态,finish或者pending
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    TableDataInfoPayOrderConsumeListResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        total:
+          type: integer
+          description: 总记录数
+          format: int64
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayOrderConsumeListResVO'
+          description: 列表数据
+        code:
+          type: integer
+          description: 消息状态码
+        msg:
+          type: string
+          description: 消息内容
+    TableDataInfoPayOrderRechargeListResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        total:
+          type: integer
+          description: 总记录数
+          format: int64
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayOrderRechargeListResVO'
+          description: 列表数据
+        code:
+          type: integer
+          description: 消息状态码
+        msg:
+          type: string
+          description: 消息内容
+    GetChangeableSkuListReqVO:
+      type: object
+      properties:
+        phoneId:
+          type: integer
+          description: 手机id
+          format: int64
+        skuId:
+          type: integer
+          description: 基准SKU ID，用于计算对比价格，不传则默认以第一个可变更SKU为基准
+          format: int64
+      required:
+        - phoneId
+    RChangeableInfoResVO:
+      type: object
+      properties:
+        traceId:
+          type: string
+          description: 链路id
+        code:
+          type: integer
+          description: 编码
+        msg:
+          type: string
+          description: 信息
+        data:
+          $ref: '#/components/schemas/ChangeableInfoResVO'
+          description: 数据
+        status:
+          type: string
+          description: 状态，表示本次是即时完成还是等待中：finish=已完成，pending=等待中
+          default: finish
+      required:
+        - traceId
+        - code
+        - msg
+        - status
+    BatchUpdateTagsResVO:
+      type: object
+      properties:
+        successCount:
+          type: integer
+          description: 成功数量
+        failCount:
+          type: integer
+          description: 失败数量
+        failPhoneIds:
+          type: array
+          items:
+            type: integer
+          description: 失败的手机ID列表
+    PhoneGroupListResVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 手机分组ID
+          format: int64
+        code:
+          type: string
+          description: 手机系统分组编号
+        groupName:
+          type: string
+          description: 手机分组名称
+        type:
+          type: string
+          description: 手机分组类型
+        phoneCount:
+          type: integer
+          description: 分组手机数量
+    TagResVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 标签ID
+          format: int64
+        tagName:
+          type: string
+          description: 标签名称
+        useCount:
+          type: integer
+          description: 使用次数
+        color:
+          type: string
+          description: 颜色
+        createTime:
+          type: string
+          description: 创建时间
+        updateTime:
+          type: string
+          description: 更新时间
+    PhoneTransferResultItemVO:
+      type: object
+      properties:
+        phoneId:
+          type: integer
+          description: 手机ID
+          format: int64
+        phoneName:
+          type: string
+          description: 手机名称
+        phoneCode:
+          type: string
+          description: 手机编号
+        success:
+          type: boolean
+          description: 是否成功
+        failReason:
+          type: string
+          description: 失败原因国际化key
+        proxyTransferred:
+          type: boolean
+          description: 代理是否已转让
+        tagsTransferred:
+          type: boolean
+          description: 标签是否已转让
+        remarkTransferred:
+          type: boolean
+          description: 备注是否已转让
+    PhoneTransferResultResVO:
+      type: object
+      properties:
+        successCount:
+          type: integer
+          description: 成功数量
+        failCount:
+          type: integer
+          description: 失败数量
+        successList:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneTransferResultItemVO'
+            description: 转让手机结果项
+          description: 成功手机
+        failList:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneTransferResultItemVO'
+            description: 转让手机结果项
+          description: 失败手机
+        createTime:
+          type: string
+          description: 操作时间
+    FileTaskStatusResVO:
+      type: object
+      properties:
+        taskStatus:
+          type: integer
+          description: 文件操作任务状态
+          enum:
+            - 1
+            - 2
+            - 3
+        taskStatusName:
+          type: string
+          description: 文件操作任务状态
+        fileDownUrl:
+          type: string
+          description: 文件下载URL
+    FileInitUploadResVO:
+      type: object
+      properties:
+        uploadId:
+          type: string
+          description: 分片上传的uploadId
+        objectKey:
+          type: string
+          description: 文件的key
+        uploadType:
+          type: string
+          description: 文件上传类型
+        totalSize:
+          type: integer
+          description: 文件大小（byte）
+          format: int64
+        chunkSize:
+          type: integer
+          description: 每个分片大小（byte）
+        chunkNum:
+          type: integer
+          description: 分片数量
+        expireTime:
+          type: string
+          description: 过期时间
+        storageConfigId:
+          type: integer
+          description: 存储配置id
+          format: int64
+        partUploadUrl:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartUploadUrl'
+          description: 分片上传信息
+        exitPartList:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartSummary1'
+          description: 已上传完的分片
+    PartETagVO:
+      type: object
+      properties:
+        eTag:
+          type: string
+          description: 分片上传返回的 ETag
+        partNumber:
+          type: integer
+          description: 分片序号，从 1 开始
+      required:
+        - eTag
+        - partNumber
+    OssMergeFileResVO:
+      type: object
+      properties:
+        phoneId:
+          type: integer
+          description: 手机ID
+          format: int64
+        envFileId:
+          type: integer
+          description: 文件推送记录ID
+          format: int64
+        taskId:
+          type: integer
+          description: 任务ID
+          format: int64
+        fileUrl:
+          type: string
+          description: 文件URL
+    TeamAppListResVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 应用 ID
+          format: int64
+        apkName:
+          type: string
+          description: apk名称
+        apkPkg:
+          type: string
+          description: apk包名
+        apkIconUrl:
+          type: string
+          description: apk图标url
+        weight:
+          type: integer
+          description: 权重，越大越靠前，默认：0
+          default: 0
+        appVersionList:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamAppVersionListResVO'
+          description: 应用版本列表
+        installStatus:
+          type: integer
+          description: 安装状态：-1=未安装，0=安装中，1=安装成功，2=升级中
+          default: -1
+        shelfStatus:
+          type: integer
+          description: 上架状态：1=已上架，0=已下架
+        autoInstall:
+          type: boolean
+          description: 自动安装标识
+    NetworkAddReqVO:
+      type: object
+      properties:
+        host:
+          type: string
+          description: ip/域名
+        port:
+          type: integer
+          description: 端口
+          maximum: 99999
+        account:
+          type: string
+          description: 账号
+        password:
+          type: string
+          description: 密码
+        groupId:
+          type: integer
+          description: 网络分组ID
+          format: int64
+        type:
+          type: string
+          description: 代理类型 1.socks5 2.https 3.http
+        detectDataType:
+          type: integer
+          description: 检测数据类型：1=跟随 IP，2=自定义
+        checkType:
+          type: string
+          description: 'IP查询渠道: dbip/ip2location/maxmind/ipapi，不传默认dbip'
+          pattern: ^(dbip|ip2location|maxmind|ipapi)?$
+        way:
+          type: string
+          description: 使用方式 1.静态ip 2.动态ip
+          default: '1'
+        region:
+          type: string
+          description: 地区
+        status:
+          type: string
+          description: 状态 0=未检测 1=检测通过 2=检测失败
+        ip:
+          type: string
+          description: 实际ip地址
+        countryName:
+          type: string
+          description: 国家
+        countryCode:
+          type: string
+          description: 国家代码
+        latitude:
+          type: string
+          description: 纬度
+        longitude:
+          type: string
+          description: 经度
+        language:
+          type: string
+          description: 语言
+        timezone:
+          type: string
+          description: 时区
+        udp:
+          type: integer
+          description: 是否开启UDP
+        remark:
+          type: string
+          description: 备注
+        expireTime:
+          type: integer
+          description: 代理到期时间（毫秒时间戳）
+          format: int64
+        syncNetworkParams:
+          type: integer
+          description: 更新网络时是否同步网络参数到已绑定手机 0-否 1-是
+          default: 1
+        syncLanguage:
+          type: integer
+          description: 更新网络时是否同步语言到已绑定手机 0-否 1-是
+          default: 0
+      required:
+        - host
+        - type
+        - status
+    NetworkInfoResVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 主键id
+          format: int64
+        name:
+          type: string
+          description: 名称
+        teamId:
+          type: integer
+          description: 所属团队ID
+          format: int64
+        num:
+          type: integer
+          description: 序号
+        host:
+          type: string
+          description: 代理主机
+        port:
+          type: integer
+          description: 代理端口
+        account:
+          type: string
+          description: 代理账号
+        password:
+          type: string
+          description: 代理密码
+        bindCount:
+          type: integer
+          description: 关联手机数
+          format: int64
+        detectDataType:
+          type: integer
+          description: 检测数据类型：1=跟随 IP，2=自定义
+        checkType:
+          type: string
+          description: 'IP查询渠道: dbip/ip2location/maxmind/ipapi'
+        type:
+          type: string
+          description: 代理类型 1.socks5 2.https 3.http
+        way:
+          type: string
+          description: 使用方式 1.静态ip 2.动态ip
+        countryName:
+          type: string
+          description: 国家
+        countryCode:
+          type: string
+          description: 国家代码
+        region:
+          type: string
+          description: 地区
+        status:
+          type: integer
+          description: 状态
+        ip:
+          type: string
+          description: 实际ip地址
+        latitude:
+          type: string
+          description: 纬度
+        longitude:
+          type: string
+          description: 经度
+        language:
+          type: string
+          description: 语言
+        timezone:
+          type: string
+          description: 时区
+        udp:
+          type: integer
+          description: 是否开启UDP
+        groupId:
+          type: integer
+          description: 网络分组ID
+          format: int64
+        groupName:
+          type: string
+          description: 网络分组名称
+        remark:
+          type: string
+          description: 备注说明
+        expireTime:
+          type: string
+          description: 代理到期时间
+    PhoneNetworkListResVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 网络分组ID
+          format: int64
+        groupName:
+          type: string
+          description: 网络分组名称
+        networkCount:
+          type: integer
+          description: 分组网络数量
+        code:
+          type: string
+          description: 手机系统分组编号
+          enum:
+            - all_group
+            - un_group
+        type:
+          type: string
+          description: 手机分组类型
+          enum:
+            - system_group
+            - custom_group
+    RechargeConfigResVO:
+      type: object
+      properties:
+        minRechargeAmount:
+          type: number
+          description: 最小充值金额
+        maxRechargeAmount:
+          type: number
+          description: 最大充值金额
+        fixedRechargeList:
+          type: array
+          items:
+            $ref: '#/components/schemas/FixedRechargeConfigResVO'
+          description: 固定金额配置列表
+        rechargeOrderInfo:
+          $ref: '#/components/schemas/RechargeOrderInfoResVO'
+          description: 充值订单信息
+    RechargeOrderInfoResVO:
+      type: object
+      properties:
+        actualPrice:
+          type: number
+          description: 实际支付金额
+        discountRate:
+          type: number
+          description: 折扣率
+        discount:
+          type: number
+          description: 折扣
+        discountAmount:
+          type: number
+          description: 折扣优惠金额
+        feeRate:
+          type: number
+          description: 手续费率
+        feeType:
+          type: string
+          description: 手续费类型
+          enum:
+            - none
+            - rate
+            - fixed
+            - ''
+        fee:
+          type: number
+          description: 手续费
+        amount:
+          type: number
+          description: 充值金额
+        giftAmount:
+          type: number
+          description: 赠送金额
+        actualAmount:
+          type: number
+          description: 实际到账金额
+        hasCanUseCoupon:
+          type: boolean
+          description: 是否有未使用的优惠券
+        hasCoupon:
+          type: boolean
+          description: 是否有可以使用的优惠券
+        couponInfo:
+          $ref: '#/components/schemas/CouponInfo'
+          description: 优惠券配置
+    WalletRechargeResVO:
+      type: object
+      properties:
+        showMode:
+          type: string
+          description: 展示模式
+          enum:
+            - url
+            - iframe
+            - form
+            - qr_code
+            - qr_code_url
+            - bar_code
+            - app
+        showContent:
+          type: string
+          description: 展示内容
+        orderId:
+          type: integer
+          description: 订单id
+          format: int64
+        money:
+          type: number
+          description: 订单金额（美元转换后的）
+        expireTime:
+          type: string
+          description: 二维码过期时间
+    PayOrderConsumeListResVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 订单id
+          format: int64
+        channelCode:
+          type: string
+          description: 支付渠道
+        channelOrderNo:
+          type: string
+          description: 渠道订单号微信、支付宝那边的编号,如果是钱包 就没有记录
+        skuId:
+          type: integer
+          description: 套餐（SKU）ID
+          format: int64
+        price:
+          type: number
+          description: 金额
+        orderType:
+          type: integer
+          description: 订单类型
+        status:
+          type: integer
+          description: 交易状态
+          enum:
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+            - 8
+            - 9
+            - 10
+            - 11
+            - 99
+        operateType:
+          type: integer
+          description: 操作类型
+        successTime:
+          type: string
+          description: 支付成功时间
+        createTime:
+          type: string
+          description: 订单创建时间
+        createUser:
+          type: string
+          description: 订单创建人
+        description:
+          type: string
+          description: 描述
+        remark:
+          type: string
+          description: 备注
+        channelName:
+          type: string
+          description: 支付渠道名称
+        payMethod:
+          type: string
+          description: 支付方式
+        methodName:
+          type: string
+          description: 支付方式名称
+        chargingCycle:
+          type: string
+          description: 计费周期
+        chargeType:
+          type: integer
+          description: 计费类型
+        chargeTypeName:
+          type: string
+          description: 计费类型名称
+        fee:
+          type: number
+          description: 手续费
+        actualPrice:
+          type: number
+          description: 实际支付金额
+        orderPrice:
+          type: number
+          description: 订单金额
+        cycleMinutes:
+          type: string
+          description: 计费周期（单位分钟）
+        cycleName:
+          type: string
+          description: 计费周期名称
+        detailsInfo:
+          type: string
+          description: 订单详细信息(json字符串)
+        refundOrderId:
+          type: integer
+          description: 退款订单编号
+          format: int64
+        originalOrderId:
+          type: integer
+          description: 原订单编号
+          format: int64
+        refunded:
+          type: boolean
+          description: 是否已退款
+        userId:
+          type: integer
+          description: 创建用户id
+          format: int64
+        createBy:
+          type: integer
+          description: 创建人id
+          format: int64
+        createName:
+          type: string
+          description: 创建人名称
+        teamId:
+          type: integer
+          description: 团队id
+          format: int64
+        teamName:
+          type: string
+          description: 团队名称
+    PayOrderRechargeListResVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 订单id
+          format: int64
+        channelCode:
+          type: string
+          description: 支付渠道
+        channelOrderNo:
+          type: string
+          description: 渠道订单号微信、支付宝那边的编号,如果是钱包 就没有记录
+        skuId:
+          type: integer
+          description: 套餐（SKU）ID
+          format: int64
+        price:
+          type: number
+          description: 金额
+        orderType:
+          type: integer
+          description: 订单类型
+        status:
+          type: integer
+          description: 交易状态
+          enum:
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+            - 8
+            - 9
+            - 10
+            - 11
+            - 99
+        operateType:
+          type: integer
+          description: 操作类型
+        successTime:
+          type: string
+          description: 支付成功时间
+        createTime:
+          type: string
+          description: 订单创建时间
+        createUser:
+          type: string
+          description: 订单创建人
+        description:
+          type: string
+          description: 描述
+        remark:
+          type: string
+          description: 备注
+        channelName:
+          type: string
+          description: 支付渠道名称
+        payMethod:
+          type: string
+          description: 支付方式
+        methodName:
+          type: string
+          description: 支付方式名称
+        chargingCycle:
+          type: string
+          description: 计费周期
+        chargeType:
+          type: integer
+          description: 计费类型
+        chargeTypeName:
+          type: string
+          description: 计费类型名称
+        fee:
+          type: number
+          description: 手续费
+        actualPrice:
+          type: number
+          description: 实际支付金额
+        orderPrice:
+          type: number
+          description: 订单金额
+        cycleMinutes:
+          type: string
+          description: 计费周期（单位分钟）
+        cycleName:
+          type: string
+          description: 计费周期名称
+        detailsInfo:
+          type: string
+          description: 订单详细信息(json字符串)
+        refundOrderId:
+          type: integer
+          description: 退款订单编号
+          format: int64
+        originalOrderId:
+          type: integer
+          description: 原订单编号
+          format: int64
+        refunded:
+          type: boolean
+          description: 是否已退款
+    ChangeableInfoResVO:
+      type: object
+      properties:
+        currentSkuInfo:
+          $ref: '#/components/schemas/ChangeableSkuInfo'
+          description: 当前sku信息
+        changeableSkuList:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChangeableSkuInfo'
+            description: 当前sku信息
+          description: 可变更的SKU列表
+    PartSummary1:
+      type: object
+      properties:
+        partNumber:
+          type: integer
+        lastModified:
+          type: string
+        eTag:
+          type: string
+        size:
+          type: integer
+          format: int64
+    TeamAppVersionListResVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 应用版本ID
+          format: int64
+        apkVersionName:
+          type: string
+          description: apk版本名称
+        apkVersionCode:
+          type: integer
+          description: apk版本号
+        installStatus:
+          type: integer
+          description: 安装状态：-1=未安装，0=安装中，1=安装成功，2=升级中
+          default: -1
+        shelfStatus:
+          type: integer
+          description: 上架状态：1=已上架，0=下架
+          default: 0
+        md5:
+          type: string
+          description: 文件 MD5
+        autoInstallFlag:
+          type: integer
+          description: 自动安装标识：0=未开启，1=已开启，2=禁止
+    FixedRechargeConfigResVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 充值配置ID
+          format: int64
+        amount:
+          type: number
+          description: 充值金额
+        orderNum:
+          type: integer
+          description: 排序 仅适用于固定金额
+        rechargeType:
+          type: string
+          description: 金额类型,fixed=固定金额 costom=自定义金额
+        selected:
+          type: integer
+          description: 默认选中 1=是 0=否
+        fee:
+          type: number
+          description: 手续费
+    CouponInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 优惠券id
+          format: int64
+        name:
+          type: string
+          description: 优惠券名称
+        description:
+          type: string
+          description: 优惠券说明
+        usePrice:
+          type: number
+          description: 满多少金额可用
+        giftPrice:
+          type: number
+          description: 满赠金额
+        validStartTime:
+          type: string
+          description: 优惠券使用开始时间
+        validEndTime:
+          type: string
+          description: 优惠券使用结束时间
+    ChangeableSkuInfo:
+      type: object
+      properties:
+        skuId:
+          type: integer
+          description: 商品skuId
+          format: int64
+        skuName:
+          type: string
+          description: 商品sku名称
+        cycleEnum:
+          type: string
+          description: 计费周期枚举值
+        cycleName:
+          type: string
+          description: 计费周期名字
+        cyclePrice:
+          type: number
+          description: 价格
+        chargeLimit:
+          type: number
+          description: 费用上限
+        cycle:
+          type: integer
+          description: 周期单位
+        extraPrice:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkuExtraPriceDTO'
+          description: 额外费用列表
+        comparePrice:
+          type: number
+          description: 对比价格（基准SKU日均价 × 当前SKU周期天数）
+        cycleDays:
+          type: integer
+          description: 套餐周期总天数
+        expireTime:
+          type: string
+          description: 预计过期时间
+    SkuExtraPriceDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID
+          format: int64
+        name:
+          type: string
+          description: 费用名称
+        langNames:
+          $ref: '#/components/schemas/MapString'
+          description: 流程模板参数构建结果
+        price:
+          type: number
+          description: 费用金额
+        cycleEnum:
+          type: string
+          description: 计费周期枚举值
+        cycleDesc:
+          type: string
+          description: 费用说明
+        langCycleDesc:
+          $ref: '#/components/schemas/MapString'
+          description: 流程模板参数构建结果
   responses: {}
   securitySchemes: {}
 servers: []

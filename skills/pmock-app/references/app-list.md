@@ -17,6 +17,7 @@
 | 参数 | 类型 | 必填 | 默认 | 说明 |
 | --- | --- | --- | --- | --- |
 | `--apk-name` | string |  |  | 应用名称 |
+| `--apk-pkg` | string |  |  | apk 包名 |
 | `--cate-code` | integer |  | `-1` | 应用分类编码 |
 | `--id` | integer |  |  |  |
 | `--only-show-installed` | boolean |  | `false` | 只显示已经安装的应用, 默认值：false |

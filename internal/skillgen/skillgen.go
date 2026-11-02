@@ -131,10 +131,11 @@ func DefaultSkills() []Skill {
 			Name:  "pmock-phone",
 			Title: "PMOCK 云手机（phone）",
 			Description: "PMOCK cloud phone management: list, create, start, stop, restart, reset, " +
-				"renew, screenshot, GPS, ADB, network settings, files and UI automation actions. " +
-				"Use when operating PMOCK cloud phones through pmock-cli.",
+				"renew, screenshot, GPS, ADB, rename, retag, change plan, groups, ownership transfer, " +
+				"files and UI automation actions. Use when operating PMOCK cloud phones.",
 			Intent: "云手机是 PMOCK 的核心资产：创建与续费、开关机、截图与 GPS、ADB 与网络配置、" +
-				"文件上传，以及点击/滑动/输入等 UI 自动化。涉及计费或不可逆的操作，先确认再执行。",
+				"改名打标签、分组与转让、文件上传，以及点击/滑动/输入等 UI 自动化。" +
+				"换套餐（update-sku）和转让确认（transfer confirm）影响计费或归属，先确认再执行。",
 			CliHelp:  "pmock-cli phone --help",
 			Prefixes: [][]string{{"phone"}},
 		},
@@ -152,20 +153,20 @@ func DefaultSkills() []Skill {
 		{
 			Name:  "pmock-app",
 			Title: "PMOCK 应用（app）",
-			Description: "PMOCK application management on cloud phones: list installed apps and " +
-				"categories, install an app or APK, check the upgrade list and operate running apps. " +
-				"Use when installing or controlling apps on PMOCK cloud phones.",
-			Intent: "应用管理围绕云手机上的包：查询已安装、安装（含本地上传的 APK）、" +
-				"查看可升级版本、启动/停止/卸载。安装前先确认目标机器的 `phoneId`。",
+			Description: "PMOCK application management: list installed apps and categories, install " +
+				"an app or APK, check upgrades, operate running apps, and maintain the shared team " +
+				"app library. Use when installing or controlling apps on PMOCK cloud phones.",
+			Intent: "应用管理分两层：`app *` 操作单台机器上的包（查询、安装、升级、启停、卸载），" +
+				"`app team-app *` 维护团队共享的应用库与版本。安装前先确认目标机器的 `phoneId`。",
 			CliHelp:  "pmock-cli app --help",
 			Prefixes: [][]string{{"app"}},
 		},
 		{
 			Name:  "pmock-network",
 			Title: "PMOCK 网络（network）",
-			Description: "PMOCK network management: list proxies, detect a proxy, and set the " +
-				"network of a cloud phone. Use when configuring proxies or switching the network " +
-				"of PMOCK cloud phones.",
+			Description: "PMOCK network management: add, update, remove, inspect and check proxies, " +
+				"organize them in proxy groups, and set the network of a cloud phone. Use when " +
+				"configuring proxies or switching the network of PMOCK cloud phones.",
 			Intent: "网络是云手机风控的基础：先 `network list` 拿到代理 ID，" +
 				"`network detect` 验证可用性，再用 `phone network-set` 绑定到机器。",
 			CliHelp:  "pmock-cli network --help",
@@ -174,13 +175,24 @@ func DefaultSkills() []Skill {
 		{
 			Name:  "pmock-platform",
 			Title: "PMOCK 平台数据（product / brand / team / task）",
-			Description: "PMOCK platform data: products and SKUs with pricing, phone brands, team " +
-				"members and phone authorization, and background task records. Use when looking up " +
-				"prices, brands, team access or task status.",
+			Description: "PMOCK platform data: products and SKUs with pricing, changeable plans, phone " +
+				"brands, tags, team members and phone authorization, and background task records. Use " +
+				"when looking up prices, brands, tags, team access or task status.",
 			Intent: "下单前查商品与价格（`product`）、创建机器时选品牌机型（`brand`）、" +
-				"把机器授权给同事（`team`）、排查异步任务结果（`task`）。",
+				"维护标签（`tag`）、把机器授权给同事（`team`）、排查异步任务结果（`task`）。",
 			CliHelp:  "pmock-cli product --help",
-			Prefixes: [][]string{{"product"}, {"brand"}, {"team"}, {"task"}},
+			Prefixes: [][]string{{"product"}, {"brand"}, {"team"}, {"task"}, {"tag"}},
+		},
+		{
+			Name:  "pmock-billing",
+			Title: "PMOCK 钱包与账单（user / payment / order）",
+			Description: "PMOCK billing: wallet balance, recharge configuration and orders, wallet " +
+				"top-up, and consumption or recharge records. Use when checking balance, recharging " +
+				"the account or auditing spend.",
+			Intent: "钱相关的三组命令：`user balance` 查余额、`payment *` 充值（`payment recharge` " +
+				"会真实扣款，属 costly，必须先跟用户确认金额）、`order *` 查消费与充值流水。",
+			CliHelp:  "pmock-cli payment --help",
+			Prefixes: [][]string{{"user"}, {"payment"}, {"order"}},
 		},
 	}
 }
