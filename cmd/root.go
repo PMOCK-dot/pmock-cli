@@ -220,6 +220,7 @@ Use "pmock-cli docs <command>" for the full flag table of any command.`,
 func addExtraCommands(root *cobra.Command, g *globals) {
 	phoneFile := ensureGroup(root, []string{"phone", "file"})
 	phoneFile.AddCommand(newPhoneFileUploadCmd(g))
+	root.AddCommand(newWatchCmd(g))
 }
 
 func addCatalog(root *cobra.Command, catalog *spec.Catalog, g *globals) {

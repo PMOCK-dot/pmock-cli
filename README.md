@@ -137,6 +137,7 @@ export PMOCK_CLI_CONFIG="$HOME/.pmock-cli/team-b.json"
 | `app` | 应用列表、安装、升级、启停 |
 | `network` | 代理与网络检测 |
 | `rpa` | RPA 模板与任务 |
+| `watch` | 跟踪长任务的进度流（给客户看的那一面） |
 | `product` | 商品、SKU、价格 |
 | `team` | 团队成员 |
 | `auth` / `config` | 鉴权与配置 |
@@ -358,6 +359,39 @@ pmock-cli rpa task add --template-id 9 --name daily --json @task.json --wait
 }
 ```
 
+### 进度流（watch）
+
+`--wait` 适合脚本：它等到终态，一次给你结果。要让**客户**知道"现在在做什么"，
+用 `watch`：它把各能力的状态归一成四个状态，并给出说过头就会被证伪的客户话术。
+
+```bash
+pmock-cli watch rpa --task-id 789 --human
+```
+
+```
+18:50:03 正在排队中。
+18:50:12 正在处理。
+18:50:17 这次没做成。想让我重试吗？
+```
+
+四个状态对应客户接下来要做的事：`running`（等）、`needs_you`（回一句话）、
+`done`（看结论）、`failed`（决定重试还是换方案）。每条事件是一个 JSON 对象，
+`say` 是给客户的那句话，`evidence` 说明后端到底给了什么：
+
+| evidence | 后端给了什么 | `say` 能说到什么程度 |
+| --- | --- | --- |
+| `structured` | 结构化结果 | 可以报数字 |
+| `step` | 业务步骤 / 失败节点 | 可以报"第几步" |
+| `status` | 只有状态码 | 只能说"正在处理" |
+| `none` | 心跳，这次没新信号 | 只能说"暂时没有新进度" |
+
+措辞永远不超过证据：后端没给步骤时，`say` 不会出现"第 N 步"；没给结构化结果时，
+不会报"共检查 5 项"。所以把 `say` 直接转给客户是安全的。
+
+覆盖范围：`watch rpa`、`watch phone`（开机/关机/重启/重置/新机）、`watch action`。
+长时间没有新信号会补一条心跳，超时会先发一条 `failed` 事件再退出，流不会无声中断。
+`--record` 把事件写进 `~/.pmock-cli/watch/`，`watch log` 可以事后回放。
+
 ---
 
 ## MCP（AI Agent 接入）
@@ -403,6 +437,10 @@ npx skills@latest add haidaisiganbei/pmock-cli -g --all -y
 
 - `skills/pmock-shared/` — 认证、响应信封、退出码、风险确认等通用规则（手写）
 - `skills/pmock-phone/` — 云手机命令索引，外加每个命令一页 reference
+- `skills/pmock-watch/` — `watch` 的四个状态、证据阶梯和话术规则（手写页，单独一个技能）
+
+`watch` 只走 CLI，不进 MCP：MCP 工具是"一问一答"，而进度流的价值恰恰在两次回答之间。
+Agent 用 MCP 下发任务、用 `pmock-cli watch rpa --task-id …` 跟踪进度。
 
 维护：
 
