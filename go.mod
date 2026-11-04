@@ -1,4 +1,4 @@
-module github.com/haidaisiganbei/pmock-cli
+module github.com/PMOCK-dot/pmock-cli
 
 go 1.25.0
 

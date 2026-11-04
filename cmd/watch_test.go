@@ -13,8 +13,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/exitcode"
-	"github.com/haidaisiganbei/pmock-cli/internal/progress"
+	"github.com/PMOCK-dot/pmock-cli/internal/exitcode"
+	"github.com/PMOCK-dot/pmock-cli/internal/progress"
 )
 
 func watchRoot(t *testing.T) (*cobra.Command, *bytes.Buffer, *bytes.Buffer, *globals) {

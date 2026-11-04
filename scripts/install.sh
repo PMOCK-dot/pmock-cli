@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Install a prebuilt pmock-cli from GitHub Releases.
 #
-#   curl -fsSL https://raw.githubusercontent.com/haidaisiganbei/pmock-cli/main/scripts/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/PMOCK-dot/pmock-cli/main/scripts/install.sh | sh
 #
 # Overrides:
 #   PMOCK_CLI_VERSION       e.g. 0.1.2 (default: latest release)
 #   PMOCK_CLI_INSTALL_DIR   default: $HOME/.local/bin
 set -euo pipefail
 
-REPO="${PMOCK_CLI_REPO:-haidaisiganbei/pmock-cli}"
+REPO="${PMOCK_CLI_REPO:-PMOCK-dot/pmock-cli}"
 VERSION="${PMOCK_CLI_VERSION:-}"
 INSTALL_DIR="${PMOCK_CLI_INSTALL_DIR:-$HOME/.local/bin}"
 

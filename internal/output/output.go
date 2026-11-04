@@ -14,7 +14,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/client"
+	"github.com/PMOCK-dot/pmock-cli/internal/client"
 )
 
 // Options controls rendering.

@@ -10,9 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/exitcode"
-	"github.com/haidaisiganbei/pmock-cli/internal/skillgen"
-	"github.com/haidaisiganbei/pmock-cli/internal/spec"
+	"github.com/PMOCK-dot/pmock-cli/internal/exitcode"
+	"github.com/PMOCK-dot/pmock-cli/internal/skillgen"
+	"github.com/PMOCK-dot/pmock-cli/internal/spec"
 )
 
 const skillsLong = `Render the agent skills tree from the command catalog.

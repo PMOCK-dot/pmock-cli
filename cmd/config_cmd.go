@@ -11,10 +11,10 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/client"
-	"github.com/haidaisiganbei/pmock-cli/internal/config"
-	"github.com/haidaisiganbei/pmock-cli/internal/exitcode"
-	"github.com/haidaisiganbei/pmock-cli/internal/output"
+	"github.com/PMOCK-dot/pmock-cli/internal/client"
+	"github.com/PMOCK-dot/pmock-cli/internal/config"
+	"github.com/PMOCK-dot/pmock-cli/internal/exitcode"
+	"github.com/PMOCK-dot/pmock-cli/internal/output"
 )
 
 func newConfigCmd(g *globals) *cobra.Command {

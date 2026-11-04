@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/client"
+	"github.com/PMOCK-dot/pmock-cli/internal/client"
 )
 
 type fakeDoer struct {

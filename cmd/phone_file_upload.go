@@ -10,10 +10,10 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/build"
-	"github.com/haidaisiganbei/pmock-cli/internal/client"
-	"github.com/haidaisiganbei/pmock-cli/internal/exitcode"
-	"github.com/haidaisiganbei/pmock-cli/internal/phonefile"
+	"github.com/PMOCK-dot/pmock-cli/internal/build"
+	"github.com/PMOCK-dot/pmock-cli/internal/client"
+	"github.com/PMOCK-dot/pmock-cli/internal/exitcode"
+	"github.com/PMOCK-dot/pmock-cli/internal/phonefile"
 )
 
 const phoneFileUploadLong = `Upload a local file to a cloud phone: init task -> upload missing parts -> merge and push.

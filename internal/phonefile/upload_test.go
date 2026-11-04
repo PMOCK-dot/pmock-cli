@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/client"
+	"github.com/PMOCK-dot/pmock-cli/internal/client"
 )
 
 type uploadServer struct {

@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/client"
-	"github.com/haidaisiganbei/pmock-cli/internal/exitcode"
-	"github.com/haidaisiganbei/pmock-cli/internal/spec"
+	"github.com/PMOCK-dot/pmock-cli/internal/client"
+	"github.com/PMOCK-dot/pmock-cli/internal/exitcode"
+	"github.com/PMOCK-dot/pmock-cli/internal/spec"
 )
 
 type waitInfo struct {

@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/auth"
+	"github.com/PMOCK-dot/pmock-cli/internal/auth"
 )
 
 // Envelope is the unified PMOCK API response.

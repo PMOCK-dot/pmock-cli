@@ -1,6 +1,6 @@
 # pmock-cli
 
-[![Release](https://github.com/haidaisiganbei/pmock-cli/actions/workflows/release.yml/badge.svg)](https://github.com/haidaisiganbei/pmock-cli/actions/workflows/release.yml)
+[![Release](https://github.com/PMOCK-dot/pmock-cli/actions/workflows/release.yml/badge.svg)](https://github.com/PMOCK-dot/pmock-cli/actions/workflows/release.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 PMOCK 开放 API 的命令行客户端。用团队的 **Access Key / Secret Key** 直接管理云手机、
@@ -37,7 +37,7 @@ pmock-cli version
 ### 一行安装（macOS / Linux，不需要 npm）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/haidaisiganbei/pmock-cli/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/PMOCK-dot/pmock-cli/main/scripts/install.sh | sh
 ```
 
 安装到 `~/.local/bin/pmock-cli`，并自动校验 checksums。
@@ -46,12 +46,12 @@ curl -fsSL https://raw.githubusercontent.com/haidaisiganbei/pmock-cli/main/scrip
 
 Windows 暂时使用 GitHub Release 中的 `.zip`：
 
-https://github.com/haidaisiganbei/pmock-cli/releases
+https://github.com/PMOCK-dot/pmock-cli/releases
 
 ### 其他安装方式
 
 ```bash
-go install github.com/haidaisiganbei/pmock-cli@latest
+go install github.com/PMOCK-dot/pmock-cli@latest
 ```
 
 ---
@@ -445,7 +445,7 @@ MCP 侧对应 `pmock_watch`，参数里不写 `observe` 时默认就是 20 秒�
 和 `pmock-cli commands` 出自同一份 OpenAPI 目录，所以文档不会和命令漂移：
 
 ```bash
-npx skills@latest add haidaisiganbei/pmock-cli -g --all -y
+npx skills@latest add PMOCK-dot/pmock-cli -g --all -y
 ```
 
 - `skills/pmock-shared/` — 认证、响应信封、退出码、风险确认等通用规则（手写）
@@ -536,8 +536,8 @@ pmock-cli doctor
 ## 链接
 
 - 开放 API 文档：https://help.pmock.com/zh/api-docs/api-docs.html
-- Releases：https://github.com/haidaisiganbei/pmock-cli/releases
-- 问题反馈：https://github.com/haidaisiganbei/pmock-cli/issues
+- Releases：https://github.com/PMOCK-dot/pmock-cli/releases
+- 问题反馈：https://github.com/PMOCK-dot/pmock-cli/issues
 
 参与开发请见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 

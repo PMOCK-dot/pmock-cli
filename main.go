@@ -5,7 +5,7 @@ import (
 	"embed"
 	"os"
 
-	"github.com/haidaisiganbei/pmock-cli/cmd"
+	"github.com/PMOCK-dot/pmock-cli/cmd"
 )
 
 // assets carries the vendored spec, the product overlay and the generated

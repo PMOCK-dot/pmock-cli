@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/spec"
+	"github.com/PMOCK-dot/pmock-cli/internal/spec"
 )
 
 func runSkills(t *testing.T, cat *spec.Catalog, args ...string) (string, error) {

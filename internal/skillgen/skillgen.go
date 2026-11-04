@@ -15,7 +15,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/spec"
+	"github.com/PMOCK-dot/pmock-cli/internal/spec"
 )
 
 const (

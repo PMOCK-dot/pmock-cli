@@ -1,6 +1,6 @@
 package skillgen
 
-import "github.com/haidaisiganbei/pmock-cli/internal/spec"
+import "github.com/PMOCK-dot/pmock-cli/internal/spec"
 
 // phoneFileUploadPage documents the hand-written upload command. It cannot be
 // generated: the CLI merges three OpenAPI operations (upload-init, part PUT,

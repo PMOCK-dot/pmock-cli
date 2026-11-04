@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/spec"
+	"github.com/PMOCK-dot/pmock-cli/internal/spec"
 )
 
 // enumPairRe finds "0=已过期" style pairs in flag descriptions. The PMOCK spec

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/spec"
+	"github.com/PMOCK-dot/pmock-cli/internal/spec"
 )
 
 func loadCatalog(t *testing.T) *spec.Catalog {

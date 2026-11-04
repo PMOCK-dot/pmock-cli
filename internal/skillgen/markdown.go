@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/spec"
+	"github.com/PMOCK-dot/pmock-cli/internal/spec"
 )
 
 // maxResponseFields caps the response tables so one wide schema cannot

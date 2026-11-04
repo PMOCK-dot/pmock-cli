@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/haidaisiganbei/pmock-cli/internal/client"
+	"github.com/PMOCK-dot/pmock-cli/internal/client"
 )
 
 // Doer is the slice of client.Client the adapters need. Tests substitute a
