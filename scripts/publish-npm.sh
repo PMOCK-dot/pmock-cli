@@ -47,9 +47,21 @@ publish_one() {
   return 1
 }
 
+available=0
 for platform in darwin-arm64 darwin-x64 linux-x64 linux-arm64 win32-x64; do
-  publish_one "pmock-cli-${platform}" "$DIR/pmock-cli-${platform}-${VERSION}.tgz"
+  if publish_one "pmock-cli-${platform}" "$DIR/pmock-cli-${platform}-${VERSION}.tgz"; then
+    available=$((available + 1))
+  fi
 done
+
+# The wrapper pins every platform package at this version, so publishing it
+# while none of them exist puts a CLI that cannot run behind `latest`. One
+# rejected platform (Windows review is common) is tolerated: installs on the
+# other platforms still work.
+if [ "$available" -eq 0 ]; then
+  echo "no pmock-cli platform package is available at ${VERSION}; refusing to publish the wrapper" >&2
+  exit 1
+fi
 
 if publish_one "pmock-cli" "$DIR/pmock-cli-${VERSION}.tgz"; then
   echo
