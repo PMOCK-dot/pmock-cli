@@ -48,7 +48,7 @@ publish_one() {
 }
 
 available=0
-for platform in darwin-arm64 darwin-x64 linux-x64 linux-arm64 win32-x64; do
+for platform in darwin-arm64 darwin-x64 linux-x64 linux-arm64 windows-x64; do
   if publish_one "pmock-cli-${platform}" "$DIR/pmock-cli-${platform}-${VERSION}.tgz"; then
     available=$((available + 1))
   fi

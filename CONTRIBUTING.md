@@ -128,9 +128,12 @@ VERSION=0.1.6 ./scripts/publish-npm.sh
 ```
 
 也可以手动跑 `npm.yml`（workflow_dispatch，输入不带 `v` 的版本号），或在 GitHub 上
-手动发布 draft Release 触发它。单个平台失败不会阻塞 wrapper。
+手动发布 draft Release 触发它。单个平台失败不会阻塞 wrapper，但如果所有平台包都没
+发出去，脚本会拒绝发布 wrapper（否则 `latest` 会指向一个装不起来的 CLI）。
 
-当前已知限制：`pmock-cli-win32-x64` 被 npm spam 审核拦截，Windows 暂时使用 zip。
+Windows 的 npm 平台包名是 `pmock-cli-windows-x64`：`pmock-cli-win32-x64` 这个
+变体名会被 npm 的 spam 检测拦截（`Package name triggered spam detection`），
+尽管 `os` 字段仍然写 `win32`。
 
 ### Homebrew
 

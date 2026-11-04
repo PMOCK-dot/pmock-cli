@@ -13,14 +13,17 @@ if (override) {
   run(override);
 }
 
-const pkg = `pmock-cli-${platform}-${arch}`;
+// npm's `os` field spells Windows as "win32", but the package name uses
+// "windows": npm's spam filter rejects the "-win32-x64" variant name.
+const pkgPlatform = platform === "win32" ? "windows" : platform;
+const pkg = `pmock-cli-${pkgPlatform}-${arch}`;
 let pkgDir;
 try {
   pkgDir = path.dirname(require.resolve(`${pkg}/package.json`));
 } catch {
   console.error(
     `pmock-cli: platform package "${pkg}" is not installed.\n` +
-      `Supported: darwin-arm64, darwin-x64, linux-x64, linux-arm64, win32-x64.`
+      `Supported: darwin-arm64, darwin-x64, linux-x64, linux-arm64, windows-x64.`
   );
   process.exit(1);
 }

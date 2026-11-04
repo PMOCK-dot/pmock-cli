@@ -35,17 +35,19 @@ trap 'rm -rf "$tmp"' EXIT
 for target in "${targets[@]}"; do
   read -r os arch <<<"$target"
   case "$os" in
-    darwin) npm_os="darwin" ;;
-    linux) npm_os="linux" ;;
-    windows) npm_os="win32" ;;
+    darwin) npm_os="darwin"; pkg_os="darwin" ;;
+    linux) npm_os="linux"; pkg_os="linux" ;;
+    # npm's os field says win32, the package name must say windows: npm's spam
+    # filter rejects the "-win32-x64" variant name.
+    windows) npm_os="win32"; pkg_os="windows" ;;
   esac
   case "$arch" in
     amd64) npm_arch="x64" ;;
     arm64) npm_arch="arm64" ;;
   esac
 
-  pkg_name="pmock-cli-${npm_os}-${npm_arch}"
-  pkg_dir="$OUT/${npm_os}-${npm_arch}"
+  pkg_name="pmock-cli-${pkg_os}-${npm_arch}"
+  pkg_dir="$OUT/${pkg_os}-${npm_arch}"
   mkdir -p "$pkg_dir"
 
   base="${DIST}/pmock-cli_${VERSION}_${os}_${arch}"
@@ -62,7 +64,7 @@ for target in "${targets[@]}"; do
 {
   "name": "${pkg_name}",
   "version": "${VERSION}",
-  "description": "PMOCK CLI binary for ${npm_os}-${npm_arch}",
+  "description": "PMOCK CLI binary for ${pkg_os}-${npm_arch}",
   "license": "Apache-2.0",
   "os": ["${npm_os}"],
   "cpu": ["${npm_arch}"],
@@ -81,7 +83,7 @@ const version = process.argv[2];
 const pkg = JSON.parse(fs.readFileSync("npm/package.json", "utf8"));
 pkg.version = version;
 pkg.optionalDependencies = {};
-for (const key of ["darwin-arm64", "darwin-x64", "linux-x64", "linux-arm64", "win32-x64"]) {
+for (const key of ["darwin-arm64", "darwin-x64", "linux-x64", "linux-arm64", "windows-x64"]) {
   pkg.optionalDependencies[`pmock-cli-${key}`] = version;
 }
 fs.writeFileSync("npm/package.json", JSON.stringify(pkg, null, 2) + "\n");
