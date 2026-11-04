@@ -1,7 +1,7 @@
 ---
 name: pmock-watch
 version: 1.0.0
-description: "PMOCK progress stream: follow RPA tasks, phone lifecycle operations and UI action tasks through one customer-facing contract (running / needs_you / done / failed), with a canonical sentence whose specificity never exceeds the evidence the backend returned. Use when an agent must tell a customer what it is doing right now."
+description: "PMOCK progress stream: follow RPA tasks, phone lifecycle operations and UI action tasks through one customer-facing contract (running / needs_you / done / failed). Each call returns one event with state, step, evidence and say — the sentence to show the customer, whose specificity never exceeds the evidence the backend returned. Use when an agent must tell a customer what it is doing right now: take a --once snapshot after dispatching, then long-poll with --observe."
 metadata:
   requires:
     bins: ["pmock-cli"]
@@ -10,7 +10,7 @@ metadata:
 
 # PMOCK 进度流（watch）
 
-同一条命令覆盖所有长任务：把 RPA 的 `0..4`、手机操作的 `taskStatus+phoneStatus`、动作任务的 `1/2/3` 归一成四个状态，并给出措辞不超过证据的客户话术。加能力是加适配器，不是加状态。
+同一条命令覆盖所有长任务：把 RPA 的 `0..4`、手机操作的 `taskStatus+phoneStatus`、动作任务的 `1/2/3` 归一成四个状态，并给出措辞不超过证据的客户话术。是快照（`--once`）和长轮询（`--observe`），不是阻塞流；加能力是加适配器，不是加状态。
 
 **先读 [`../pmock-shared/SKILL.md`](../pmock-shared/SKILL.md)**：认证、响应信封、退出码和风险确认规则都在那里，本文件只描述命令本身。
 

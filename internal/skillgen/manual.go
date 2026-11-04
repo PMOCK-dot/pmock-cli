@@ -88,7 +88,20 @@ const watchOverview = `## 状态
 ## 事件格式
 
 每行一个 JSON 对象，关键字段：` + "`seq` `at` `kind` `state` `step` `total` `label` `etaSeconds` `evidence` `reason` `say`" + `。
-` + "`--human`" + ` 直接打印 ` + "`say`" + `，适合给人看；默认 JSON 适合给程序看。`
+` + "`--human`" + ` 直接打印 ` + "`say`" + `，适合给人看；默认 JSON 适合给程序看。
+
+## 在 Agent 里怎么播报
+
+聊天界面里的进度不是平台推出来的，是 Agent 每次工具调用之间说出来的。所以不要直接跑阻塞的
+` + "`watch`" + `（它要等到任务结束才返回，中间用户什么都看不到），用快照加长轮询：
+
+1. 下发任务后先取一次快照：` + "`watch rpa --task-id N --once`" + `，立刻说一句"已接单"；
+2. 之后每次用 ` + "`--observe 20s`" + `：有变化立刻返回，没变化最多等 20 秒；
+3. ` + "`state`" + ` 或 ` + "`say`" + ` 变了就播报，没变就什么都不用说（不要重复同一句话）；
+4. 停在 ` + "`done`" + ` / ` + "`failed`" + ` / ` + "`needs_you`" + `：前两个给结论，最后一个把决定交回客户。
+
+MCP 里对应 ` + "`pmock_watch`" + `（action 取 ` + "`rpa` `phone` `action`" + `），默认就是 20 秒长轮询，
+返回一行事件，失败任务也按正常结果返回，不是工具报错。`
 
 // watchPages documents the hand-written watch command tree.
 func watchPages() []ManualPage {

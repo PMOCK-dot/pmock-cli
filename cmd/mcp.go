@@ -23,6 +23,7 @@ import (
 
 	"github.com/haidaisiganbei/pmock-cli/internal/build"
 	"github.com/haidaisiganbei/pmock-cli/internal/config"
+	"github.com/haidaisiganbei/pmock-cli/internal/exitcode"
 	"github.com/haidaisiganbei/pmock-cli/internal/spec"
 )
 
@@ -278,8 +279,22 @@ func (s *mcpServer) callTool(ctx context.Context, t *mcpTool, args mcpArgs) (*mc
 	if err != nil {
 		return mcpError(err.Error()), nil, nil
 	}
+	if t.Name == "pmock_watch" && action.Name != "log" {
+		// MCP tools are request/response: a blocking watch would freeze the
+		// agent. Default to a 20s long poll so a call still returns promptly
+		// while giving the caller a chance to see a change.
+		_, hasOnce := args.Params["once"]
+		_, hasObserve := args.Params["observe"]
+		if !hasOnce && !hasObserve {
+			argv = append(argv, "--observe", "20s")
+		}
+	}
 
 	stdout, stderr, err := s.runCLI(ctx, argv)
+	if t.Name == "pmock_watch" && exitcode.CodeOf(err) == exitcode.Business {
+		// "failed" is a normal terminal state of a task, not a tool error.
+		err = nil
+	}
 	text := strings.TrimSpace(stdout)
 	if err != nil {
 		if extra := strings.TrimSpace(stderr); extra != "" {
@@ -379,6 +394,7 @@ func buildMCPTools(catalog *spec.Catalog) []*mcpTool {
 		{Name: "pmock_billing", Depth: 0, Summary: "Wallet and billing: balance, recharge config and orders, top-up (costly), consumption and recharge records."},
 		{Name: "pmock_rpa_template", Depth: 2, Summary: "RPA templates: market, team list, collect and delete."},
 		{Name: "pmock_rpa_task", Depth: 2, Summary: "RPA tasks: add, list, get, details, update, stop, retry and delete."},
+		{Name: "pmock_watch", Depth: 1, Summary: "Read the current progress of a long-running task as one normalized event: {state, say, evidence, step, total, etaSeconds}. state is running | needs_you | done | failed, and say is the sentence to show the user. Poll it while a task runs: each call returns as soon as something changes or after params.observe seconds (default 20), so the user keeps hearing from you. Print say whenever it changes, and stop when state is done, failed or needs_you. Do NOT run `pmock-cli watch` from a shell: it blocks until the task ends and the user sees nothing in the meantime."},
 		{Name: "pmock_product", Depth: 1, Summary: "Products, SKUs and pricing."},
 		{Name: "pmock_brand", Depth: 1, Summary: "Cloud phone brands."},
 		{Name: "pmock_team", Depth: 1, Summary: "Team members and phone authorization."},
@@ -446,6 +462,12 @@ func buildMCPTools(catalog *spec.Catalog) []*mcpTool {
 		Summary: "Upload a local file or APK to a cloud phone (multipart, MD5, merge and push)",
 		Risk:    spec.RiskWrite,
 	})
+	byName["pmock_watch"].Actions = append(byName["pmock_watch"].Actions,
+		mcpAction{Name: "rpa", Path: []string{"watch", "rpa"}, Summary: "Progress of an RPA task (params: taskId)", Risk: spec.RiskRead},
+		mcpAction{Name: "phone", Path: []string{"watch", "phone"}, Summary: "Progress of a phone lifecycle operation (params: id, op)", Risk: spec.RiskRead},
+		mcpAction{Name: "action", Path: []string{"watch", "action"}, Summary: "Progress of a UI action task (params: code, taskId)", Risk: spec.RiskRead},
+		mcpAction{Name: "log", Path: []string{"watch", "log"}, Summary: "Replay the recorded progress events of a watched task (params: kind, taskId)", Risk: spec.RiskRead},
+	)
 	byName["pmock_account"].Actions = append(byName["pmock_account"].Actions,
 		mcpAction{Name: "config-init", Path: []string{"config", "init"}, Summary: "Save the access key and secret key", Risk: spec.RiskWrite},
 		mcpAction{Name: "config-show", Path: []string{"config", "show"}, Summary: "Show the effective configuration with secrets masked", Risk: spec.RiskRead},

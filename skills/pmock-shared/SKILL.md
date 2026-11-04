@@ -105,6 +105,17 @@ pmock-cli phone reset --id 123 --wait --wait-timeout 10m --poll-interval 3s
 
 不加 `--wait` 时用 `pmock-cli task list` 或对应命令的 `task-status` 查进度。
 
+**长任务要给用户播报，不能静默。** 在聊天界面里跑阻塞的 `watch` 没有用——它要等到任务结束才返回，
+中间用户什么都看不到。正确做法是先取快照、再长轮询：
+
+```bash
+pmock-cli watch rpa --task-id 789 --once          # 下发后立刻说"已接单"
+pmock-cli watch rpa --task-id 789 --observe 20s   # 有变化立刻返回，没变化最多等 20 秒
+```
+
+`state` 或 `say` 变了就说，没变就不说；停在 `done` / `failed` / `needs_you`。
+MCP 侧对应 `pmock_watch`，默认就是 20 秒长轮询。详见 `pmock-watch` 技能。
+
 ## 两个易错点
 
 1. **ID 是 int64**：`id`、`phoneId` 等字段超过 2^53 时用字符串传（`--id "1900000000000000123"`），

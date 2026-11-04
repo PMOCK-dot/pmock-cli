@@ -155,11 +155,13 @@ func DefaultSkills() []Skill {
 			Title: "PMOCK 进度流（watch）",
 			Description: "PMOCK progress stream: follow RPA tasks, phone lifecycle operations and UI " +
 				"action tasks through one customer-facing contract (running / needs_you / done / " +
-				"failed), with a canonical sentence whose specificity never exceeds the evidence the " +
-				"backend returned. Use when an agent must tell a customer what it is doing right now.",
+				"failed). Each call returns one event with state, step, evidence and say — the sentence " +
+				"to show the customer, whose specificity never exceeds the evidence the backend " +
+				"returned. Use when an agent must tell a customer what it is doing right now: take a " +
+				"--once snapshot after dispatching, then long-poll with --observe.",
 			Intent: "同一条命令覆盖所有长任务：把 RPA 的 `0..4`、手机操作的 `taskStatus+phoneStatus`、" +
 				"动作任务的 `1/2/3` 归一成四个状态，并给出措辞不超过证据的客户话术。" +
-				"加能力是加适配器，不是加状态。",
+				"是快照（`--once`）和长轮询（`--observe`），不是阻塞流；加能力是加适配器，不是加状态。",
 			CliHelp:  "pmock-cli watch --help",
 			Prefixes: [][]string{{"watch"}},
 		},

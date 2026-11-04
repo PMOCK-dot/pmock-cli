@@ -35,9 +35,13 @@ type Runner struct {
 	Heartbeat time.Duration // negative disables the heartbeat
 	Timeout   time.Duration
 	Once      bool
-	Emit      func(Event) error
-	Now       func() time.Time
-	Sleep     func(context.Context, time.Duration) bool
+	// Observe turns Run into a long poll: it waits up to this long for the
+	// state to change, then returns the current event either way. Agents use
+	// it to narrate a long task without hammering the API or going silent.
+	Observe time.Duration
+	Emit    func(Event) error
+	Now     func() time.Time
+	Sleep   func(context.Context, time.Duration) bool
 }
 
 // Run polls until a terminal state, the deadline, a cancelled context or an
@@ -67,6 +71,10 @@ func (r *Runner) Run(ctx context.Context) (Event, error) {
 		timeout = defaultTimeout
 	}
 
+	if r.Observe > 0 {
+		return r.observe(ctx, now, sleep, interval)
+	}
+
 	start := now()
 	var last Event
 	var lastEmitAt time.Time
@@ -82,18 +90,7 @@ func (r *Runner) Run(ctx context.Context) (Event, error) {
 			return last, cerr
 		}
 
-		ev := Event{
-			At:       now(),
-			Kind:     r.Adapter.Kind(),
-			State:    obs.State,
-			Step:     obs.Step,
-			Total:    obs.Total,
-			Label:    obs.Label,
-			Reason:   obs.Reason,
-			Counts:   obs.Counts,
-			Observed: obs.Observed,
-			Evidence: evidenceOf(obs),
-		}
+		ev := r.event(obs, now())
 		if ev.State == StateRunning && ev.Step > 0 && ev.Total > ev.Step {
 			if elapsed := now().Sub(start).Seconds(); elapsed > 0 {
 				eta := int(math.Ceil(elapsed / float64(ev.Step) * float64(ev.Total-ev.Step)))
@@ -194,5 +191,66 @@ func sleepCtx(ctx context.Context, d time.Duration) bool {
 		return false
 	case <-t.C:
 		return true
+	}
+}
+
+// event builds the normalized event for one observation.
+func (r *Runner) event(obs Observation, at time.Time) Event {
+	return Event{
+		At:       at,
+		Kind:     r.Adapter.Kind(),
+		State:    obs.State,
+		Step:     obs.Step,
+		Total:    obs.Total,
+		Label:    obs.Label,
+		Reason:   obs.Reason,
+		Counts:   obs.Counts,
+		Observed: obs.Observed,
+		Evidence: evidenceOf(obs),
+	}
+}
+
+// observe is the long-poll mode: wait for a change, but never longer than
+// Observe, then return the current event. The caller decides whether the event
+// is worth repeating; this mode never invents a "nothing new" sentence.
+func (r *Runner) observe(ctx context.Context, now func() time.Time, sleep func(context.Context, time.Duration) bool, interval time.Duration) (Event, error) {
+	start := now()
+	var base Event
+	first := true
+	for {
+		obs, err := r.Adapter.Poll(ctx)
+		if err != nil {
+			return base, err
+		}
+		ev := r.event(obs, now())
+		if first {
+			base = ev
+			first = false
+		}
+		// A task that already ended must not make the caller wait out the
+		// window: there is nothing left to observe.
+		if ev.Terminal() || ev.State == StateNeedsYou {
+			ev.Seq = 1
+			ev.Say = Copy(ev)
+			if r.Emit != nil {
+				if err := r.Emit(ev); err != nil {
+					return ev, err
+				}
+			}
+			return ev, nil
+		}
+		if materialChange(base, ev) || now().Sub(start) >= r.Observe {
+			ev.Seq = 1
+			ev.Say = Copy(ev)
+			if r.Emit != nil {
+				if err := r.Emit(ev); err != nil {
+					return ev, err
+				}
+			}
+			return ev, nil
+		}
+		if !sleep(ctx, interval) {
+			return base, ctx.Err()
+		}
 	}
 }

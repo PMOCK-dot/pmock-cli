@@ -279,3 +279,43 @@ func TestMCPConfigInitGuard(t *testing.T) {
 		}
 	}
 }
+
+func TestMCPWatchReturnsOneEventAndToleratesFailure(t *testing.T) {
+	t.Setenv("PMOCK_CLI_CONFIG", t.TempDir()+"/none.json")
+	t.Setenv("PMOCK_ACCESS_KEY", "AK")
+	t.Setenv("PMOCK_SECRET_KEY", "SK")
+	var gotPath string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		_, _ = w.Write([]byte(`{"traceId":"t","code":0,"msg":"ok","data":{"status":4,"taskList":[{"status":3,"remark":"任务创建失败"}]}}`))
+	}))
+	defer srv.Close()
+	t.Setenv("PMOCK_BASE_URL", srv.URL+"/api")
+
+	catalog := testCatalog(t)
+	s := &mcpServer{catalog: catalog, tools: buildMCPTools(catalog)}
+	tool := mcpToolByName(t, s.tools, "pmock_watch")
+	res, _, err := s.callTool(context.Background(), tool, mcpArgs{
+		Action: "rpa",
+		Params: map[string]any{"task-id": "2117537701360017409"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.IsError {
+		t.Fatalf("a failed task is a valid snapshot, not a tool error: %s", resultText(t, res))
+	}
+	text := resultText(t, res)
+	if !strings.Contains(text, `"state":"failed"`) {
+		t.Fatalf("text = %s", text)
+	}
+	if !strings.Contains(text, "任务创建失败") || !strings.Contains(text, "想让我重试吗") {
+		t.Fatalf("text = %s", text)
+	}
+	if !strings.Contains(gotPath, "2117537701360017409") {
+		t.Fatalf("watch asked the wrong endpoint: %s", gotPath)
+	}
+	if strings.Contains(text, "[Help:") {
+		t.Fatalf("snapshot should not drag the reference page along: %s", text)
+	}
+}

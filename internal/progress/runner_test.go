@@ -196,3 +196,68 @@ func TestRunnerOnceReturnsTheFirstSnapshot(t *testing.T) {
 		t.Fatalf("--once slept %d times", clock.n)
 	}
 }
+
+// Long-poll mode is what agents use between two chat messages: it must return
+// as soon as something changed, without inventing a "nothing new" sentence.
+func TestRunnerObserveReturnsOnChange(t *testing.T) {
+	ad := &scriptedAdapter{kind: "rpa", obs: []Observation{
+		{State: StateRunning},
+		{State: StateRunning},
+		{State: StateRunning, Step: 2, Total: 3, Label: "检查资料"},
+	}}
+	clock := &fakeClock{t: time.Unix(0, 0)}
+	var events []Event
+	r := newRunner(ad, clock, func(e Event) error { events = append(events, e); return nil })
+	r.Observe = 30 * time.Second
+
+	ev, err := r.Run(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ev.Step != 2 || ev.Evidence != EvidenceStep {
+		t.Fatalf("ev = %+v", ev)
+	}
+	if len(events) != 1 {
+		t.Fatalf("long poll emitted %d events, want exactly the changed one", len(events))
+	}
+	if clock.n != 2 {
+		t.Fatalf("returned after %d sleeps, want 2", clock.n)
+	}
+}
+
+func TestRunnerObserveReturnsCurrentStateAtDeadline(t *testing.T) {
+	ad := &scriptedAdapter{kind: "rpa", obs: []Observation{{State: StateRunning}}}
+	clock := &fakeClock{t: time.Unix(0, 0)}
+	var events []Event
+	r := newRunner(ad, clock, func(e Event) error { events = append(events, e); return nil })
+	r.Observe = 10 * time.Second
+
+	ev, err := r.Run(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ev.State != StateRunning || ev.Evidence != EvidenceStatus {
+		t.Fatalf("ev = %+v", ev)
+	}
+	if ev.Say != "正在处理。" {
+		t.Fatalf("say = %q", ev.Say)
+	}
+	if len(events) != 1 {
+		t.Fatalf("emitted %d events", len(events))
+	}
+}
+
+func TestRunnerObserveReturnsImmediatelyOnFinishedTask(t *testing.T) {
+	ad := &scriptedAdapter{kind: "rpa", obs: []Observation{{State: StateDone}}}
+	clock := &fakeClock{t: time.Unix(0, 0)}
+	r := newRunner(ad, clock, func(Event) error { return nil })
+	r.Observe = 30 * time.Second
+
+	ev, err := r.Run(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ev.State != StateDone || clock.n != 0 {
+		t.Fatalf("ev = %+v, slept %d times", ev, clock.n)
+	}
+}

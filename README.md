@@ -392,6 +392,19 @@ pmock-cli watch rpa --task-id 789 --human
 长时间没有新信号会补一条心跳，超时会先发一条 `failed` 事件再退出，流不会无声中断。
 `--record` 把事件写进 `~/.pmock-cli/watch/`，`watch log` 可以事后回放。
 
+### 在 Agent 里让它真的看得见
+
+聊天界面里的进度不是平台推出来的，是 Agent 在两次工具调用之间说出来的。所以不要让 Agent
+直接跑阻塞的 `watch`（它要等到任务结束才返回，中间用户什么都看不到），而是：
+
+1. 下发后先 `watch rpa --task-id N --once` 取快照，立刻说"已接单：…"；
+2. 之后用 `watch rpa --task-id N --observe 20s`：有变化立刻返回，没变化最多等 20 秒；
+3. `state` 或 `say` 变了就播报，没变就不说话；
+4. 停在 `done` / `failed` / `needs_you`，最后把结论和选择交给客户。
+
+MCP 侧对应 `pmock_watch`，参数里不写 `observe` 时默认就是 20 秒。`skills/pmock-watch`
+里写死了这个循环，Agent 加载技能后照做即可。
+
 ---
 
 ## MCP（AI Agent 接入）
@@ -439,8 +452,9 @@ npx skills@latest add haidaisiganbei/pmock-cli -g --all -y
 - `skills/pmock-phone/` — 云手机命令索引，外加每个命令一页 reference
 - `skills/pmock-watch/` — `watch` 的四个状态、证据阶梯和话术规则（手写页，单独一个技能）
 
-`watch` 只走 CLI，不进 MCP：MCP 工具是"一问一答"，而进度流的价值恰恰在两次回答之间。
-Agent 用 MCP 下发任务、用 `pmock-cli watch rpa --task-id …` 跟踪进度。
+`watch` 也通过 MCP 暴露为 `pmock_watch`（`action` 取 `rpa` / `phone` / `action`）。
+MCP 工具是"一问一答"，所以它默认做 20 秒长轮询：有变化立刻返回，没变化 20 秒后返回当前状态，
+失败任务按正常结果返回而不是工具报错。
 
 维护：
 

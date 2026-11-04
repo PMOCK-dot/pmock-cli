@@ -68,6 +68,7 @@ type watchOpts struct {
 	heartbeat time.Duration
 	timeout   time.Duration
 	once      bool
+	observe   time.Duration
 	human     bool
 	record    bool
 	stateDir  string
@@ -80,6 +81,8 @@ func (o *watchOpts) bind(c *cobra.Command) {
 	c.Flags().DurationVar(&o.timeout, "deadline", 20*time.Minute,
 		"give up after this long and emit a failed event")
 	c.Flags().BoolVar(&o.once, "once", false, "poll once and exit")
+	c.Flags().DurationVar(&o.observe, "observe", 0,
+		"long poll: wait up to this long for a change, return the current event either way (0 = stream until done)")
 	c.Flags().BoolVar(&o.human, "human", false, "print the canonical sentence instead of a JSON line")
 	c.Flags().BoolVar(&o.record, "record", false, "append every event to the local ledger")
 	c.Flags().StringVar(&o.stateDir, "state-dir", "",
@@ -95,6 +98,10 @@ func (o *watchOpts) run(cmd *cobra.Command, key string, ad progress.Adapter) err
 		defer led.Close()
 	}
 
+	observe := o.observe
+	if o.once {
+		observe = 0
+	}
 	out := cmd.OutOrStdout()
 	r := &progress.Runner{
 		Adapter:   ad,
@@ -102,6 +109,7 @@ func (o *watchOpts) run(cmd *cobra.Command, key string, ad progress.Adapter) err
 		Heartbeat: o.heartbeat,
 		Timeout:   o.timeout,
 		Once:      o.once,
+		Observe:   observe,
 		Emit: func(ev progress.Event) error {
 			if err := writeWatchEvent(out, ev, o.human); err != nil {
 				return err
