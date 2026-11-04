@@ -30,8 +30,8 @@ jobs:
   # The secrets context is not available in a job-level `if`, so the presence of
   # a registry credential is resolved in its own short job and the publisher
   # consumes the output. Without a token the release still ships and npm is
-  # skipped with a warning, instead of burning the publish script's 20 minute
-  # retry loop before failing the whole run.
+  # skipped with a warning, instead of failing the whole release run after the
+  # publish script exhausts its retries.
   npm-preflight:
     runs-on: ubuntu-latest
     outputs:
