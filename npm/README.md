@@ -27,8 +27,19 @@ for f in npm/build/*-*.tgz; do npm publish "$f" --access public; done
 npm publish npm/build/pmock-cli-0.1.0.tgz --access public
 ```
 
-All names are unscoped so they can be published from the `haidaisiganbei` npm
-account. Check availability again before publishing.
+All names are unscoped so they can be published from the `pmock` npm account.
+That account does not own the existing packages yet, so the current owner adds
+it once per package (the win32 package was never published, so it is excluded):
+
+```bash
+for p in pmock-cli pmock-cli-darwin-arm64 pmock-cli-darwin-x64 \
+         pmock-cli-linux-x64 pmock-cli-linux-arm64; do
+  npm owner add pmock "$p"
+done
+```
+
+`release.yml` authenticates as `pmock` through the `NPM_TOKEN` repository
+secret, so the token has to come from that account.
 
 ## Test locally
 
