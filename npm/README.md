@@ -23,8 +23,16 @@ Tarballs land in `npm/build/`.
 ## Publish
 
 ```bash
-for f in npm/build/*-*.tgz; do npm publish "$f" --access public; done
-npm publish npm/build/pmock-cli-0.1.0.tgz --access public
+VERSION=0.1.11 ./scripts/publish-npm.sh
+```
+
+The script publishes the five platform packages and the wrapper, skips versions
+that already exist, and keeps going when npm rejects one platform package. An
+account with two-factor auth on writes needs a code for these publishes; it is
+reused for every package:
+
+```bash
+NPM_OTP=123456 VERSION=0.1.11 ./scripts/publish-npm.sh
 ```
 
 All names are unscoped so they can be published from the `pmock` npm account.

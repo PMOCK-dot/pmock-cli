@@ -3,10 +3,16 @@
 #
 #   VERSION=0.1.2 ./scripts/publish-npm.sh
 #
-# Existing versions are skipped. A platform package that npm rejects (for
-# example Windows spam review) is reported but does not block the wrapper:
-# npm treats optionalDependencies as optional, so macOS/Linux installs still
-# work while the Windows package is being reviewed.
+# An account with two-factor auth on writes needs a one-time password for a
+# direct publish. Pass it once and every package reuses it:
+#
+#   NPM_OTP=123456 VERSION=0.1.2 ./scripts/publish-npm.sh
+#
+# Existing versions are skipped, so re-running after a code expires or after a
+# partial failure publishes only what is still missing. A platform package that
+# npm rejects (for example Windows spam review) is reported but does not block
+# the wrapper: npm treats optionalDependencies as optional, so macOS/Linux
+# installs still work while the Windows package is being reviewed.
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
@@ -32,7 +38,7 @@ publish_one() {
     return 0
   fi
   echo "→ ${name}@${VERSION}"
-  if npm publish "$file" --registry "$REGISTRY" --access public; then
+  if npm publish "$file" --registry "$REGISTRY" --access public ${NPM_OTP:+--otp="$NPM_OTP"}; then
     echo "published ${name}@${VERSION}"
     return 0
   fi
