@@ -41,6 +41,19 @@ done
 `release.yml` authenticates as `pmock` through the `NPM_TOKEN` repository
 secret, so the token has to come from that account.
 
+The token must be a granular access token with **Bypass 2FA** enabled, limited
+to the packages above. The account has `auth-and-writes` two-factor auth, so a
+classic publish token fails both `npm publish` and `npm owner add`:
+
+```
+npm error code EOTP
+npm error This operation requires a one-time password from your authenticator.
+```
+
+Interactive commands take `--otp=<code>`; CI cannot, which is why the repository
+secret has to bypass 2FA. Note that npm is restricting bypass-2FA tokens for
+account changes and direct publishing, so this may need revisiting.
+
 ## Test locally
 
 ```bash
