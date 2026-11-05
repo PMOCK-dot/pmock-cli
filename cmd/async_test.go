@@ -223,3 +223,40 @@ func TestWaitRPA(t *testing.T) {
 		t.Fatalf("wait = %#v", wait)
 	}
 }
+
+// Action endpoints return the task id as a bare string or under "result";
+// requiring "taskId" broke --wait on every action command.
+func TestTaskIDFromDataVariants(t *testing.T) {
+	cases := []struct {
+		name string
+		body string
+		want int64
+	}{
+		{"object taskId number", `{"taskId":7}`, 7},
+		{"object taskId string", `{"taskId":"8"}`, 8},
+		{"object result string", `{"result":"9"}`, 9},
+		{"bare number", `10`, 10},
+		{"bare string", `"11"`, 11},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got, ok := taskIDFromData(json.RawMessage(tc.body))
+			if !ok || got != tc.want {
+				t.Fatalf("taskIDFromData(%s) = %d, %v; want %d, true", tc.body, got, ok, tc.want)
+			}
+		})
+	}
+	if _, ok := taskIDFromData(json.RawMessage(`{"other":1}`)); ok {
+		t.Fatal("body without a task id must not resolve")
+	}
+}
+
+func TestWithTaskIDKeepsScalarResult(t *testing.T) {
+	var out map[string]any
+	if err := json.Unmarshal(withTaskID(json.RawMessage(`"42"`), 42), &out); err != nil {
+		t.Fatal(err)
+	}
+	if out["result"] != "42" || out["taskId"].(float64) != 42 {
+		t.Fatalf("withTaskID = %#v", out)
+	}
+}

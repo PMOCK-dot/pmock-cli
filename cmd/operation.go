@@ -40,12 +40,23 @@ func newOperationCmd(sc *spec.Command, g *globals) *cobra.Command {
 	if sc.HasJSONInput() {
 		c.Flags().String("json", "", "request body as a JSON object, or @file.json, or - for stdin; flags override its keys")
 	}
-	if sc.CanWait() {
-		c.Flags().Bool("wait", false, "wait for the async task to reach a terminal state")
+	if sc.CanWait() || supportsWait(sc) {
+		c.Flags().Bool("wait", false, waitHelp(sc))
 		c.Flags().Duration("wait-timeout", 3*time.Minute, "maximum time to wait for the task")
 		c.Flags().Duration("poll-interval", 2*time.Second, "polling interval while waiting")
 	}
+	if sc.FullPath() == "phone screen" {
+		addScreenCompositeFlags(c)
+	} else if subject := subjectFlag(sc); subject != "" {
+		addBatchFlags(c, subject)
+	}
 	c.RunE = func(cmd *cobra.Command, args []string) error {
+		if sc.FullPath() == "phone screen" {
+			return runScreenCommand(cmd, sc, byName, g)
+		}
+		if batchRequested(cmd) {
+			return runBatch(cmd, sc, byName, g)
+		}
 		return runOperation(cmd, sc, byName, g)
 	}
 	return c
@@ -85,9 +96,33 @@ func addFlag(c *cobra.Command, f *spec.Flag) {
 	}
 }
 
+// runOperation executes one request and maps the outcome onto stdout and the
+// exit contract. Batch mode and the composite screenshot command call
+// executeOperation directly and render their own aggregate.
 func runOperation(cmd *cobra.Command, sc *spec.Command, byName map[string]*spec.Flag, g *globals) error {
+	env, err := executeOperation(cmd, sc, byName, g)
+	if env == nil {
+		return err
+	}
+	if err != nil {
+		var apiErr *client.APIError
+		if errors.As(err, &apiErr) {
+			return finish(cmd, g, env, err)
+		}
+		if rerr := renderEnvelope(cmd, g, env); rerr != nil {
+			return rerr
+		}
+		return err
+	}
+	return finish(cmd, g, env, nil)
+}
+
+// executeOperation performs the request for one target and annotates the
+// envelope with the wait result when --wait is set. It renders nothing except
+// the --dry-run request.
+func executeOperation(cmd *cobra.Command, sc *spec.Command, byName map[string]*spec.Flag, g *globals) (*client.Envelope, error) {
 	if sc.Risk == spec.RiskDestructive && !g.yes {
-		return exitcode.Usagef("%s is destructive and cannot be undone; re-run with --yes", sc.FullPath())
+		return nil, exitcode.Usagef("%s is destructive and cannot be undone; re-run with --yes", sc.FullPath())
 	}
 	if sc.Risk == spec.RiskCostly && !g.yes {
 		fmt.Fprintf(cmd.ErrOrStderr(),
@@ -96,7 +131,7 @@ func runOperation(cmd *cobra.Command, sc *spec.Command, byName map[string]*spec.
 
 	path, query, body, err := buildRequest(cmd, sc, byName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if g.dryRun {
@@ -104,7 +139,7 @@ func runOperation(cmd *cobra.Command, sc *spec.Command, byName map[string]*spec.
 		if base == "" {
 			cfg, cfgErr := config.LoadForDisplay()
 			if cfgErr != nil {
-				return exitcode.Usagef("%v", cfgErr)
+				return nil, exitcode.Usagef("%v", cfgErr)
 			}
 			base = cfg.BaseURL
 		}
@@ -119,14 +154,14 @@ func runOperation(cmd *cobra.Command, sc *spec.Command, byName map[string]*spec.
 		enc.SetEscapeHTML(false)
 		enc.SetIndent("", "  ")
 		if err := enc.Encode(req); err != nil {
-			return exitcode.Runtimef("failed to render dry-run request: %v", err)
+			return nil, exitcode.Runtimef("failed to render dry-run request: %v", err)
 		}
-		return nil
+		return nil, nil
 	}
 
 	cfg, err := g.config()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	c := client.New(cfg.BaseURL, cfg.AccessKey, cfg.SecretKey, cfg.Timeout)
@@ -136,19 +171,13 @@ func runOperation(cmd *cobra.Command, sc *spec.Command, byName map[string]*spec.
 		fmt.Fprintf(cmd.ErrOrStderr(), "%s %s\n", sc.Method, client.BuildURL(cfg.BaseURL, path, query))
 	}
 
-	ctx, cancel := context.WithTimeout(cmd.Context(), cfg.Timeout)
+	ctx, cancel := context.WithTimeout(commandContext(cmd), cfg.Timeout)
 	defer cancel()
 
 	env, err := c.Do(ctx, client.Request{Method: sc.Method, Path: path, Query: query, Body: body})
-	if err == nil && env != nil && sc.CanWait() {
-		wait, _ := cmd.Flags().GetBool("wait")
-		if wait {
-			if werr := waitForTask(cmd, c, sc, env); werr != nil {
-				if rerr := renderEnvelope(cmd, g, env); rerr != nil {
-					return exitcode.Runtimef("failed to render response: %v", rerr)
-				}
-				return werr
-			}
+	if err == nil && env != nil && supportsWait(sc) && flagBool(cmd, "wait") {
+		if werr := waitForTask(cmd, c, sc, env); werr != nil {
+			return env, werr
 		}
 	}
 	if err == nil && env != nil && (env.Code == 0 || env.Code == 200) && sc.FullPath() == "phone stream-token" {
@@ -156,7 +185,43 @@ func runOperation(cmd *cobra.Command, sc *spec.Command, byName map[string]*spec.
 			"Warning: the returned remotePhoneExternal URL shares one remote session with the PMOCK desktop client; "+
 				"opening both kicks each other. Use `pmock-cli phone screen` for a snapshot, or let the client open its native window.")
 	}
-	return finish(cmd, g, env, err)
+	if err != nil && env != nil {
+		err = attachPkgCandidates(ctx, cmd, c, sc, err)
+	}
+	return env, err
+}
+
+// supportsWait reports whether a command registers --wait. Async commands poll
+// their task; synchronous POSTs return immediately with a terminal envelope, so
+// --wait is accepted there too and never leaves a caller guessing which
+// endpoint is which.
+func supportsWait(sc *spec.Command) bool {
+	return sc.CanWait() || (sc.Method == "POST" && sc.Risk != spec.RiskRead)
+}
+
+func waitHelp(sc *spec.Command) string {
+	if sc.CanWait() {
+		return "wait for the async task to reach a terminal state"
+	}
+	return "return once the call completes (this endpoint is synchronous)"
+}
+
+// commandContext returns the command context, or a background context when the
+// command was not executed through cobra (unit tests call RunE directly).
+func commandContext(cmd *cobra.Command) context.Context {
+	if ctx := cmd.Context(); ctx != nil {
+		return ctx
+	}
+	return context.Background()
+}
+
+func flagBool(cmd *cobra.Command, name string) bool {
+	f := cmd.Flags().Lookup(name)
+	if f == nil {
+		return false
+	}
+	v, err := cmd.Flags().GetBool(name)
+	return err == nil && v
 }
 
 func renderEnvelope(cmd *cobra.Command, g *globals, env *client.Envelope) error {

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -24,6 +26,7 @@ type waitInfo struct {
 	Attempts        int    `json:"attempts"`
 	WaitedMs        int64  `json:"waitedMs"`
 	Error           string `json:"error,omitempty"`
+	Note            string `json:"note,omitempty"`
 }
 
 // waitForTask polls the task endpoint until a terminal state or timeout and
@@ -42,7 +45,7 @@ func waitForTask(cmd *cobra.Command, c *client.Client, sc *spec.Command, env *cl
 		interval = 50 * time.Millisecond
 	}
 
-	ctx, cancel := context.WithTimeout(cmd.Context(), timeout)
+	ctx, cancel := context.WithTimeout(commandContext(cmd), timeout)
 	defer cancel()
 
 	start := time.Now()
@@ -54,6 +57,21 @@ func waitForTask(cmd *cobra.Command, c *client.Client, sc *spec.Command, env *cl
 		}
 	}()
 
+	// Synchronous endpoints already return a terminal envelope. Treating that
+	// as done makes --wait safe on every write command instead of forcing the
+	// caller to know which endpoint is async.
+	if env != nil && env.OK() && isTerminalStatus(env.Status) {
+		info.OK = true
+		if sc.Async == "action" {
+			// The action task status endpoint is not dependable: a finished
+			// launch can report 1 forever, and a finished task is reported as
+			// -1. Treating "accepted" as done keeps --wait fast, and the
+			// screenshot stays the source of truth.
+			info.Note = "action accepted; the action task status is unreliable, verify with `pmock-cli phone screen`"
+		}
+		return nil
+	}
+
 	switch sc.Async {
 	case "phone":
 		return waitPhone(ctx, cmd, c, sc, env, info, interval)
@@ -62,8 +80,20 @@ func waitForTask(cmd *cobra.Command, c *client.Client, sc *spec.Command, env *cl
 	case "rpa":
 		return waitRPA(ctx, c, env, info, interval)
 	default:
-		return exitcode.Usagef("command %s has no async policy", sc.FullPath())
+		return exitcode.Usagef(
+			"command %s returned status %q and has no async task to wait for",
+			sc.FullPath(), env.Status)
 	}
+}
+
+// isTerminalStatus reports whether an envelope status already means the work
+// finished, so --wait can return without polling.
+func isTerminalStatus(status string) bool {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "finish", "finished", "success", "succeeded", "done", "complete", "completed":
+		return true
+	}
+	return false
 }
 
 func waitPhone(ctx context.Context, cmd *cobra.Command, c *client.Client, sc *spec.Command, env *client.Envelope, info *waitInfo, interval time.Duration) error {
@@ -161,9 +191,10 @@ func waitAction(ctx context.Context, cmd *cobra.Command, c *client.Client, env *
 		info.Error = "response has no taskId"
 		return exitcode.Runtimef("the API response does not contain a task id; cannot wait")
 	}
-	// Normalize a numeric RLong body into an object so the wait annotation has
-	// a stable place to live.
-	env.Data = json.RawMessage(fmt.Sprintf(`{"taskId":%d}`, taskID))
+	// Normalize the body into an object so the wait annotation has a stable
+	// place to live, while keeping fields the endpoint already returned
+	// (action endpoints put the task id in "result").
+	env.Data = withTaskID(env.Data, taskID)
 
 	for {
 		res, err := c.Do(ctx, client.Request{
@@ -342,12 +373,61 @@ func boolFromData(raw json.RawMessage, field string) (bool, bool) {
 	return v, ok
 }
 
+// taskIDFromData extracts the async task id from an accepted envelope body.
+// Bodies are not uniform: phone lifecycle endpoints return {"taskId":N},
+// action endpoints return {"result":"N"} (a string), and a few return the id
+// as a bare number. Accepting only "taskId" made --wait fail with "response
+// has no taskId" on every action command, which pushed callers into polling
+// each task by hand.
 func taskIDFromData(raw json.RawMessage) (int64, bool) {
+	if id, ok := parseInt64Loose(raw); ok {
+		return id, true
+	}
+	var m map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &m); err != nil {
+		return 0, false
+	}
+	for _, field := range []string{"taskId", "result"} {
+		if id, ok := parseInt64Loose(m[field]); ok {
+			return id, true
+		}
+	}
+	return 0, false
+}
+
+func parseInt64Loose(raw json.RawMessage) (int64, bool) {
+	if len(raw) == 0 {
+		return 0, false
+	}
 	var n int64
 	if err := json.Unmarshal(raw, &n); err == nil {
 		return n, true
 	}
-	return int64FromData(raw, "taskId")
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		if n, err := strconv.ParseInt(strings.TrimSpace(s), 10, 64); err == nil {
+			return n, true
+		}
+	}
+	return 0, false
+}
+
+// withTaskID merges taskId into an object body, keeping a scalar body under
+// "result" so the shape callers already see does not change.
+func withTaskID(raw json.RawMessage, taskID int64) json.RawMessage {
+	var m map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &m); err != nil || m == nil {
+		if len(raw) > 0 && string(raw) != "null" {
+			return json.RawMessage(fmt.Sprintf(`{"result":%s,"taskId":%d}`, raw, taskID))
+		}
+		return json.RawMessage(fmt.Sprintf(`{"taskId":%d}`, taskID))
+	}
+	m["taskId"] = json.RawMessage(strconv.FormatInt(taskID, 10))
+	out, err := json.Marshal(m)
+	if err != nil {
+		return json.RawMessage(fmt.Sprintf(`{"taskId":%d}`, taskID))
+	}
+	return out
 }
 
 func stringFromJSONFlag(cmd *cobra.Command, field string) string {

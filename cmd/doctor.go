@@ -14,6 +14,7 @@ import (
 	"github.com/PMOCK-dot/pmock-cli/internal/client"
 	"github.com/PMOCK-dot/pmock-cli/internal/config"
 	"github.com/PMOCK-dot/pmock-cli/internal/exitcode"
+	"github.com/PMOCK-dot/pmock-cli/internal/spec"
 )
 
 type doctorCheck struct {
@@ -22,7 +23,7 @@ type doctorCheck struct {
 	Detail string `json:"detail"`
 }
 
-func newDoctorCmd(g *globals) *cobra.Command {
+func newDoctorCmd(g *globals, catalog ...*spec.Catalog) *cobra.Command {
 	return &cobra.Command{
 		Use:   "doctor",
 		Short: "Diagnose config, credentials and API connectivity",
@@ -93,6 +94,10 @@ Exit code is 2 for missing credentials and 3 for network/auth failures.`,
 			}
 			checks = append(checks, doctorCheck{Name: "base_url", OK: urlOK, Detail: cfg.BaseURL})
 
+			if len(catalog) > 0 && catalog[0] != nil {
+				checks = append(checks, catalogCheck(catalog[0]))
+			}
+
 			if credsOK && urlOK {
 				c := client.New(cfg.BaseURL, cfg.AccessKey, cfg.SecretKey, cfg.Timeout)
 				c.UserAgent = "pmock-cli/" + build.Version
@@ -147,4 +152,34 @@ Exit code is 2 for missing credentials and 3 for network/auth failures.`,
 			return exitcode.Runtimef("doctor: one or more checks failed")
 		},
 	}
+}
+
+// catalogCheck validates the generated command catalog offline: every command
+// that declares an async policy must use one the wait implementation knows.
+// A typo in openapi/overlay.yaml would otherwise surface only at runtime.
+func catalogCheck(catalog *spec.Catalog) doctorCheck {
+	known := map[string]bool{"phone": true, "action": true, "rpa": true}
+	async := 0
+	var bad []string
+	for _, sc := range catalog.Commands {
+		if sc.Async == "" {
+			continue
+		}
+		async++
+		if !known[sc.Async] {
+			bad = append(bad, sc.FullPath()+"="+sc.Async)
+		}
+	}
+	return doctorCheck{
+		Name:   "command_catalog",
+		OK:     len(bad) == 0,
+		Detail: fmt.Sprintf("%d commands, %d async, unknown policies: %s", len(catalog.Commands), async, orNone(bad)),
+	}
+}
+
+func orNone(items []string) string {
+	if len(items) == 0 {
+		return "none"
+	}
+	return fmt.Sprint(items)
 }
