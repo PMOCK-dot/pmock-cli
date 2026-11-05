@@ -151,6 +151,11 @@ func runOperation(cmd *cobra.Command, sc *spec.Command, byName map[string]*spec.
 			}
 		}
 	}
+	if err == nil && env != nil && (env.Code == 0 || env.Code == 200) && sc.FullPath() == "phone stream-token" {
+		fmt.Fprintln(cmd.ErrOrStderr(),
+			"Warning: the returned remotePhoneExternal URL shares one remote session with the PMOCK desktop client; "+
+				"opening both kicks each other. Use `pmock-cli phone screen` for a snapshot, or let the client open its native window.")
+	}
 	return finish(cmd, g, env, err)
 }
 

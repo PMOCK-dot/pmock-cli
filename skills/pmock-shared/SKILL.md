@@ -122,6 +122,15 @@ MCP 侧对应 `pmock_watch`，默认就是 20 秒长轮询。详见 `pmock-watch
    否则 JSON 数字会丢精度。
 2. **批量接口传逗号分隔**：`--ids 1,2,3`，不是重复传 `--ids`。
 
+## 看屏与客户端窗口
+
+- 看屏优先用 `phone screen`（截图 URL）或 MCP 的 `screenText` / `tapAndSee`；**不要**把
+  `phone stream-token` 返回的 `remotePhoneExternal` URL 用浏览器打开。
+- 这个网页和 PMOCK 客户端的远程桌面共用同一个远程会话（`forceKick: true`），两边同时开
+  会互相踢下线，表现为「已在其他渠道/页面打开」「已断开」。
+- 需要让用户看实时画面时，执行任意手机操作，让 PMOCK 客户端自动打开原生窗口；或让用户点
+  客户端「Agent 正在操作」浮层的「查看屏幕」。同一台手机只保留一个画面。
+
 ## 发现命令
 
 ```bash
