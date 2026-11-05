@@ -2,17 +2,21 @@
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"sort"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/PMOCK-dot/pmock-cli/internal/build"
+	"github.com/PMOCK-dot/pmock-cli/internal/clientbridge"
 	"github.com/PMOCK-dot/pmock-cli/internal/config"
 	"github.com/PMOCK-dot/pmock-cli/internal/exitcode"
 	"github.com/PMOCK-dot/pmock-cli/internal/spec"
@@ -30,6 +34,10 @@ type globals struct {
 	yes                bool
 	allowBusinessError bool
 	verbose            bool
+	// linkClient mirrors successful commands into a running PMOCK desktop
+	// client. The MCP server disables it per inner CLI run because its tool
+	// handler already reports activity/applied around the call.
+	linkClient bool
 }
 
 func (g *globals) config() (*config.Config, error) {
@@ -147,7 +155,7 @@ func newRootWith(catalog *spec.Catalog, includeMCP bool) *cobra.Command {
 // newRootWithSkills is newRootWith plus the embedded skills tree. skills may be
 // nil: the commands then fall back to --help text instead of reference pages.
 func newRootWithSkills(catalog *spec.Catalog, includeMCP bool, skills fs.FS) *cobra.Command {
-	g := &globals{}
+	g := &globals{linkClient: includeMCP}
 
 	root := &cobra.Command{
 		Use:   "pmock-cli",
@@ -178,10 +186,17 @@ Use "pmock-cli docs <command>" for the full flag table of any command.`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			switch g.format {
 			case "json", "pretty", "table":
+				reportCLIActivityToClient(g, cmd)
 				return nil
 			default:
 				return exitcode.Usagef("invalid --format %q (want json, pretty or table)", g.format)
 			}
+		},
+		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+			// Direct CLI calls (Codex/Claude shell tools) should light up the
+			// desktop client just like `pmock-cli mcp` tool calls do.
+			reportCLICommandToClient(g, cmd)
+			return nil
 		},
 	}
 	root.SetVersionTemplate("pmock-cli version {{.Version}}\n")
@@ -268,4 +283,54 @@ func ensureGroup(root *cobra.Command, parts []string) *cobra.Command {
 		cur = next
 	}
 	return cur
+}
+
+// reportCLICommandToClient mirrors a successful CLI command into a running
+// PMOCK desktop client. It is deliberately best-effort: the client is optional,
+// and a missing or slow client must never change the CLI's exit code.
+func reportCLIActivityToClient(g *globals, cmd *cobra.Command) {
+	if !g.linkClient || g.dryRun || testing.Testing() {
+		return
+	}
+	for _, ev := range cliCommandEvents(cmd) {
+		if ev.Kind != "activity" {
+			continue
+		}
+		reportCLIEvent(ev)
+	}
+}
+
+// reportCLICommandToClient sends the post-success "data changed" signal. The
+// activity signal is already sent in PersistentPreRunE so a long --wait still
+// lights up the client immediately.
+func reportCLICommandToClient(g *globals, cmd *cobra.Command) {
+	if !g.linkClient || g.dryRun || testing.Testing() {
+		return
+	}
+	for _, ev := range cliCommandEvents(cmd) {
+		if ev.Kind != "applied" {
+			continue
+		}
+		reportCLIEvent(ev)
+	}
+}
+
+func cliCommandEvents(cmd *cobra.Command) []clientbridge.Event {
+	path := strings.Fields(cmd.CommandPath())
+	if len(path) < 2 {
+		return nil
+	}
+	params := make(map[string]any)
+	cmd.Flags().Visit(func(f *pflag.Flag) {
+		if f.Changed {
+			params[f.Name] = f.Value.String()
+		}
+	})
+	return clientbridge.Describe(path[1:], params)
+}
+
+func reportCLIEvent(ev clientbridge.Event) {
+	if err := clientbridge.Report(context.Background(), ev); err != nil && os.Getenv("PMOCK_CLIENT_LINK_DEBUG") == "1" {
+		fmt.Fprintf(os.Stderr, "clientbridge: report %s failed: %v\n", ev.Kind, err)
+	}
 }
