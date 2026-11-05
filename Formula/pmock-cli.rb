@@ -29,6 +29,6 @@ class PmockCli < Formula
   end
 
   test do
-    assert_match "0.1.15", shell_output("#{bin}/pmock-cli --version")
+    assert_match "0.1.16", shell_output("#{bin}/pmock-cli --version")
   end
 end

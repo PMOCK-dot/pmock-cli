@@ -9,7 +9,7 @@ LDFLAGS := -s -w \
 	-X $(MODULE)/internal/build.Date=$(DATE)
 PREFIX  ?= /usr/local
 
-.PHONY: build test vet fmt check install clean snapshot run update-spec package npm skills skills-check
+.PHONY: build test vet fmt check install clean snapshot run update-spec package npm skills skills-check release
 
 build:
 	go build -trimpath -ldflags "$(LDFLAGS)" -o bin/$(BINARY) .
@@ -52,6 +52,11 @@ package:
 
 npm:
 	VERSION=$${VERSION:-0.1.4} ./scripts/build-npm.sh
+
+# One-command release: make release RELEASE_VERSION=0.1.17
+# Without RELEASE_VERSION the next version is inferred from commit messages.
+release:
+	@./scripts/release.sh $(RELEASE_VERSION)
 
 clean:
 	rm -rf bin dist

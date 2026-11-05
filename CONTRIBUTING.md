@@ -99,9 +99,29 @@ MCP SDK 把工具参数解码进 `map[string]any`，JSON 数字一律变成 `flo
 ### 一条命令发版
 
 ```bash
-git tag v0.1.6
-git push origin v0.1.6
+./scripts/release.sh             # 自动推断版本并发布
+./scripts/release.sh 0.1.17      # 指定版本（v 可省略）
+./scripts/release.sh --dry-run   # 只打印计划，不动仓库
 ```
+
+版本推断规则：`feat:` → minor，`feat!:` / `BREAKING CHANGE` → major，其余 → patch。
+
+脚本依次做四件事：
+
+1. 校验工作区干净、在 `main` 且没有落后 `origin/main`；
+2. 打 annotated tag `vX.Y.Z`，推 `main` 和 tag，触发 `release.yml`；
+3. 轮询 Release，等 `checksums.txt` 出现（默认最多 15 分钟）；
+4. 回填 `Formula/pmock-cli.rb` 的 `version`、4 个 `sha256` 和 `brew test` 断言，
+   提交 `release: vX.Y.Z formula and checksums` 并推回 `main`。
+
+发布失败或只想补 formula（脚本幂等，已是最新则不提交）：
+
+```bash
+./scripts/release.sh --formula-only 0.1.17
+```
+
+也可以走 Makefile：`make release RELEASE_VERSION=0.1.17`。不想动 formula 时加
+`--skip-formula`；CI 慢可以先发版，之后再 `--formula-only` 补。
 
 `release.yml` 只有一个入口，推 tag 后依次执行两个 job：
 
