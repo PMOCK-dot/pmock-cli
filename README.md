@@ -395,12 +395,31 @@ pmock-cli phone list --format table
 
 工具和每个动作要的参数字段，用 `pmock_help` / `pmock_docs` 查；CLI 侧对应 `pmock-cli docs <command>`。
 
+### 与 PMOCK 客户端联动
+
+`pmock-cli mcp` 发起手机操作、或写命令成功后，如果本机 PMOCK 客户端正在运行，会把事件上报给客户端：
+
+- 云手机列表出现 `AI` 角标，右下角显示「Agent 正在操作 <手机名> · 截图/点击/开机…」
+- 同一台手机 5 分钟内首次被操作时自动打开远程桌面窗口（不抢焦点）
+- 写操作完成后客户端列表/分组/标签自动刷新
+
+不需要额外配置：客户端会在 `userData/mcp/runtime.json` 写入端口和 token，CLI 自动发现并携带
+Bearer token 上报。客户端没启动、端口/token 过期或请求超时都会静默跳过，不影响工具调用。
+
+| 变量 | 作用 |
+|---|---|
+| `PMOCK_CLIENT_LINK=0` | 关闭联动 |
+| `PMOCK_CLIENT_RUNTIME` | 指定 `runtime.json`（或所在目录），用于非默认安装位置 |
+
+需要客户端包含 `POST /agent-event` 端点；没有该端点的旧客户端会自动 404，CLI 忽略。
+
 ## 项目结构
 
 ```text
 cmd/            命令定义（cobra），每个命令组一个文件
 internal/
   client/       HTTP 客户端、请求签名、响应信封
+  clientbridge/ 向本机 PMOCK 客户端上报 Agent 活动 / 数据变更
   config/       配置文件与环境变量解析
   output/       JSON / pretty / table 三种渲染
   progress/     长任务进度状态归一

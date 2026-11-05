@@ -28,6 +28,7 @@ main.go                  # go:embed openapi/*.yaml
 cmd/                     # Cobra 命令树、MCP Server、doctor
 internal/spec/           # OpenAPI 解析、overlay、命令/flags 生成
 internal/client/         # AK/SK 签名、HTTP、重试、信封
+internal/clientbridge/   # 向本机 PMOCK 客户端上报 Agent 活动/数据变更
 internal/config/         # ~/.pmock-cli/config.json
 internal/output/         # 分页折叠、脱敏、json/pretty/table
 internal/phonefile/      # 多段上传

@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/PMOCK-dot/pmock-cli/internal/build"
+	"github.com/PMOCK-dot/pmock-cli/internal/clientbridge"
 	"github.com/PMOCK-dot/pmock-cli/internal/config"
 	"github.com/PMOCK-dot/pmock-cli/internal/exitcode"
 	"github.com/PMOCK-dot/pmock-cli/internal/spec"
@@ -290,6 +291,16 @@ func (s *mcpServer) callTool(ctx context.Context, t *mcpTool, args mcpArgs) (*mc
 		}
 	}
 
+	// Announce the phone operation before a potentially long --wait, so the
+	// desktop client shows "Agent is operating" while it runs. Only activity is
+	// sent here; the refresh signal waits for success.
+	bridgeEvents := clientbridge.Describe(action.Path, args.Params)
+	for _, ev := range bridgeEvents {
+		if ev.Kind == "activity" {
+			_ = clientbridge.Report(ctx, ev)
+		}
+	}
+
 	stdout, stderr, err := s.runCLI(ctx, argv)
 	if t.Name == "pmock_watch" && exitcode.CodeOf(err) == exitcode.Business {
 		// "failed" is a normal terminal state of a task, not a tool error.
@@ -320,6 +331,16 @@ func (s *mcpServer) callTool(ctx context.Context, t *mcpTool, args mcpArgs) (*mc
 		text += "\n\n" + s.referenceText(ctx, action.Path)
 		return mcpError(text), nil, nil
 	}
+
+	// If a PMOCK desktop client is running, mirror the refresh signal its own
+	// MCP tools emit. This is optional and fail-open: a missing client must
+	// never fail or noticeably delay the tool call.
+	for _, ev := range bridgeEvents {
+		if ev.Kind == "applied" {
+			_ = clientbridge.Report(ctx, ev)
+		}
+	}
+
 	if text == "" {
 		text = "ok"
 	}

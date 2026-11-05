@@ -3,12 +3,20 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/PMOCK-dot/pmock-cli/internal/clientbridge"
 )
 
 func mcpToolByName(t *testing.T, tools []*mcpTool, name string) *mcpTool {
@@ -210,6 +218,7 @@ func TestMCPCallToolSuccess(t *testing.T) {
 }
 
 func TestMCPCallToolBusinessError(t *testing.T) {
+	t.Setenv("PMOCK_CLIENT_LINK", "0")
 	t.Setenv("PMOCK_CLI_CONFIG", t.TempDir()+"/none.json")
 	t.Setenv("PMOCK_ACCESS_KEY", "AK")
 	t.Setenv("PMOCK_SECRET_KEY", "SK")
@@ -317,5 +326,82 @@ func TestMCPWatchReturnsOneEventAndToleratesFailure(t *testing.T) {
 	}
 	if strings.Contains(text, "[Help:") {
 		t.Fatalf("snapshot should not drag the reference page along: %s", text)
+	}
+}
+
+func TestMCPCallToolReportsToClientBridge(t *testing.T) {
+	var mu sync.Mutex
+	var events []clientbridge.Event
+	clientSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("Authorization"); got != "Bearer test-token" {
+			t.Errorf("authorization = %q", got)
+		}
+		var event clientbridge.Event
+		if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+			t.Errorf("decode event: %v", err)
+		}
+		mu.Lock()
+		events = append(events, event)
+		mu.Unlock()
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer clientSrv.Close()
+
+	host, portText, err := net.SplitHostPort(strings.TrimPrefix(clientSrv.URL, "http://"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if host != "127.0.0.1" {
+		t.Fatalf("unexpected test host %q", host)
+	}
+	port, err := strconv.Atoi(portText)
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtimePath := filepath.Join(t.TempDir(), "runtime.json")
+	runtimeJSON := fmt.Sprintf(
+		`{"port":%d,"token":"test-token","pid":1,"startedAt":"2026-11-05T03:00:00.000Z"}`,
+		port,
+	)
+	if err := os.WriteFile(runtimePath, []byte(runtimeJSON), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PMOCK_CLIENT_RUNTIME", runtimePath)
+	t.Setenv("PMOCK_CLIENT_LINK", "1")
+
+	apiSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"traceId":"t","code":200,"msg":"ok","data":{}}`))
+	}))
+	defer apiSrv.Close()
+	t.Setenv("PMOCK_CLI_CONFIG", t.TempDir()+"/none.json")
+	t.Setenv("PMOCK_ACCESS_KEY", "AK")
+	t.Setenv("PMOCK_SECRET_KEY", "SK")
+	t.Setenv("PMOCK_BASE_URL", apiSrv.URL+"/api")
+
+	catalog := testCatalog(t)
+	s := &mcpServer{catalog: catalog, tools: buildMCPTools(catalog)}
+	tool := mcpToolByName(t, s.tools, "pmock_phone")
+	res, _, err := s.callTool(context.Background(), tool, mcpArgs{
+		Action: "start",
+		Params: map[string]any{"id": float64(123)},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected error result: %s", resultText(t, res))
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if len(events) != 2 {
+		t.Fatalf("events = %+v, want activity + applied", events)
+	}
+	if events[0].Kind != "activity" || events[0].Action != "powerOn" || events[0].PhoneID != "123" {
+		t.Fatalf("activity event = %+v", events[0])
+	}
+	if events[1].Kind != "applied" || len(events[1].Scopes) != 1 ||
+		events[1].Scopes[0] != "cloudPhones" || events[1].SettleMS != 5000 {
+		t.Fatalf("applied event = %+v", events[1])
 	}
 }
