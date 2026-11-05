@@ -1,22 +1,47 @@
 # pmock-cli
 
-[![Release](https://github.com/PMOCK-dot/pmock-cli/actions/workflows/release.yml/badge.svg)](https://github.com/PMOCK-dot/pmock-cli/actions/workflows/release.yml)
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+![Release](https://github.com/PMOCK-dot/pmock-cli/actions/workflows/release.yml/badge.svg)
+![npm](https://img.shields.io/npm/v/pmock-cli.svg)
+![Go](https://img.shields.io/badge/go-%3E%3D1.25-blue.svg)
+![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)
 
 PMOCK 开放 API 的命令行客户端。用团队的 **Access Key / Secret Key** 直接管理云手机、
 应用、文件、网络和 RPA 任务，不需要打开客户端，也不需要本机登录态。
 
-适合：
+## 为什么选择 pmock-cli？
 
-- 在终端批量管理云手机
-- 写自动化脚本 / CI 任务
-- 给 AI Agent 提供可执行的 PMOCK 工具（MCP）
+- **全 API 覆盖** — 云手机、UI 自动化、文件、应用、代理、RPA、商品、团队、钱包账单
+- **单一二进制，零依赖** — Windows / macOS / Linux 同一个可执行文件，AK/SK 直连
+- **对脚本与 Agent 友好** — 默认 JSON，`--format table` 给人看， `--json` 覆盖自动化
+- **开源** — Apache-2.0，命令、文档、Agent 技能出自同一份 OpenAPI 目录
+
+## 功能概览
+
+| 类别 | 能力 |
+|---|---|
+| 📱 云手机 | 列表、创建、启停、重启、重置、续费、截图、GPS、分组、标签、改名、转让 |
+| 👆 UI 自动化 | 点击、双击、长按、滑动、拖动、输入、应用操作 |
+| 📁 文件 | 扫描、上传（自动分片 + MD5）、下载 |
+| 🧩 应用 | 列表、安装、升级、启停、团队应用库 |
+| 🌐 网络 | 代理与代理组、连通性检测 |
+| 🤖 RPA | 模板与定时任务 |
+| 💰 账单 | 钱包余额、充值套餐、消费 / 充值流水 |
+| 🏢 平台 | 商品与 SKU、品牌、标签、团队成员与授权 |
 
 ---
 
-## 安装
+## 安装与快速开始
 
-### npm（macOS / Linux）
+### 环境要求
+
+- **npm 方式**：Node.js 18+，Windows（x64）、macOS、Linux 通用
+- **源码方式**：Go 1.25+
+
+### 快速开始（人类用户）
+
+#### 安装
+
+**方式一 — 从 npm 安装（推荐，Windows / macOS / Linux 通用）：**
 
 ```bash
 npm install -g pmock-cli@latest
@@ -28,38 +53,38 @@ npm install -g pmock-cli@latest
 npm install -g pmock-cli@latest --registry=https://registry.npmjs.org
 ```
 
-验证：
+**方式二 — 从源码安装：**
+
+需要 Go 1.25+。
 
 ```bash
-pmock-cli version
+git clone https://github.com/PMOCK-dot/pmock-cli.git
+cd pmock-cli
+sudo make install     # 装到 /usr/local/bin；不想用 sudo 就 PREFIX=$HOME/.local make install
 ```
 
-### 一行安装（macOS / Linux，不需要 npm）
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/PMOCK-dot/pmock-cli/main/scripts/install.sh | sh
-```
-
-安装到 `~/.local/bin/pmock-cli`，并自动校验 checksums。
-
-### Windows
-
-Windows 暂时使用 GitHub Release 中的 `.zip`：
-
-https://github.com/PMOCK-dot/pmock-cli/releases
-
-### 其他安装方式
+不想 clone 的话也可以直接：
 
 ```bash
 go install github.com/PMOCK-dot/pmock-cli@latest
 ```
 
----
+产物在 `$(go env GOPATH)/bin/pmock-cli`。
 
-## 五分钟上手
+验证安装：
 
 ```bash
-# 1. 配置 AK/SK
+pmock-cli version
+```
+
+> Windows 上用 PowerShell 或 cmd 执行同一条 npm 命令；新开终端后 `where.exe pmock-cli`
+> 应指向 `%APPDATA%\npm\pmock-cli.cmd`。如果提示「不是内部或外部命令」，说明 `%APPDATA%\npm`
+> 不在 PATH 里，确认后重开终端；版本低于 0.1.12 请重装（那时还没有 Windows 平台包）。
+
+#### 配置与使用
+
+```bash
+# 1. 配置 AK/SK（交互式，Secret 不回显）
 pmock-cli config init
 
 # 2. 检查配置和连通性
@@ -72,58 +97,63 @@ pmock-cli phone list --page-num 1 --page-size 100
 pmock-cli phone list --format table
 ```
 
----
+### 快速开始（AI Agent）
 
-## 配置
+> 以下步骤面向 AI Agent。部分步骤需要用户提供 AK/SK，可从 PMOCK 客户端的团队设置页获取。
 
-### 交互式
-
-```bash
-pmock-cli config init
-```
-
-Secret 输入不会回显。配置保存在 `~/.pmock-cli/config.json`，权限 `0600`。
-
-### 非交互式
+**第一步 — 安装**
 
 ```bash
-pmock-cli config init \
-  --base-url "https://user.pmock.com/api" \
-  --access-key "AK..." \
-  --secret-key "SK..."
+npm install -g pmock-cli@latest
 ```
 
-### 环境变量
+**第二步 — 配置 AK/SK**
 
-CI 中推荐使用环境变量：
+```bash
+pmock-cli config init --access-key "AK..." --secret-key "SK..."
+```
+
+也可以只用环境变量，不动配置文件：
 
 ```bash
 export PMOCK_ACCESS_KEY="AK..."
 export PMOCK_SECRET_KEY="SK..."
-export PMOCK_BASE_URL="https://user.pmock.com/api"
-export PMOCK_TIMEOUT="30s"
 ```
 
-优先级：
-
-```text
-命令行参数 > 环境变量 > 配置文件 > 默认值
-```
-
-### 多套配置
-
-为不同团队或账号保存独立配置：
+**第三步 — 验证**
 
 ```bash
-export PMOCK_CLI_CONFIG="$HOME/.pmock-cli/team-b.json"
-pmock-cli config init
+pmock-cli doctor
 ```
 
-之后固定使用：
+`data.ok` 为 `true` 且 `checks` 里 `api` 通过，说明凭证、地址和网络都正常。
+
+**第四步 — 安装 Skills（可选）**
+
+把技能包装进 Agent，让它知道什么时候该调哪条命令：
 
 ```bash
-export PMOCK_CLI_CONFIG="$HOME/.pmock-cli/team-b.json"
+npx skills@latest add PMOCK-dot/pmock-cli -g --all -y
 ```
+
+---
+
+## 配置与环境变量
+
+`pmock-cli config init` 写入 `~/.pmock-cli/config.json`（Windows 为
+`%USERPROFILE%\.pmock-cli\config.json`），macOS / Linux 上权限 `0600`。
+
+CI、容器里用环境变量，优先级 **命令行参数 > 环境变量 > 配置文件 > 默认值**：
+
+| 变量 | 用途 |
+|---|---|
+| `PMOCK_ACCESS_KEY` / `PMOCK_SECRET_KEY` | 团队凭证，必填 |
+| `PMOCK_BASE_URL` | 接口地址，默认 `https://user.pmock.com/api` |
+| `PMOCK_TIMEOUT` | 单次请求超时，默认 `30s` |
+| `PMOCK_CLI_CONFIG` | 指向另一份配置文件，用于多团队 / 多套配置 |
+
+Windows：PowerShell 用 `$env:PMOCK_ACCESS_KEY = "AK..."`，cmd 用 `set PMOCK_ACCESS_KEY=AK...`；
+要长期保留用 `[Environment]::SetEnvironmentVariable("PMOCK_ACCESS_KEY", "AK...", "User")`。
 
 ---
 
@@ -137,7 +167,6 @@ export PMOCK_CLI_CONFIG="$HOME/.pmock-cli/team-b.json"
 | `app` | 应用列表、安装、升级、启停 |
 | `network` | 代理与网络检测 |
 | `rpa` | RPA 模板与任务 |
-| `watch` | 跟踪长任务的进度流（给客户看的那一面） |
 | `product` | 商品、SKU、价格 |
 | `team` | 团队成员 |
 | `auth` / `config` | 鉴权与配置 |
@@ -315,106 +344,20 @@ pmock-cli phone list --format table
 
 ---
 
-## 更多用法
-
-### 嵌套参数
-
-标量参数用 flag，嵌套对象或数组用 `--json`：
-
-```bash
-pmock-cli phone create --spu-id 1 --sku-id 2 --num 1 \
-  --json '{"tagIds":[1,2],"realResolution":true}'
-
-pmock-cli rpa task add --template-id 9 --name daily --json @task.json
-```
-
-### 先看请求再执行
-
-```bash
-pmock-cli phone start --id 123 --dry-run
-```
-
-只输出 method、URL 和 body，不发送请求。
-
-### 异步等待
-
-```bash
-pmock-cli phone start --id 123 --wait
-pmock-cli phone action click --code A1 --pos-type 2 --pos 100,200 --wait
-pmock-cli rpa task add --template-id 9 --name daily --json @task.json --wait
-```
-
-结果会写进 `data.wait`：
-
-```json
-{
-  "taskId": 1,
-  "wait": {
-    "ok": true,
-    "taskStatus": 2,
-    "phoneStatus": 1,
-    "attempts": 2,
-    "waitedMs": 1200
-  }
-}
-```
-
-### 进度流（watch）
-
-`--wait` 适合脚本：它等到终态，一次给你结果。要让**客户**知道"现在在做什么"，
-用 `watch`：它把各能力的状态归一成四个状态，并给出说过头就会被证伪的客户话术。
-
-```bash
-pmock-cli watch rpa --task-id 789 --human
-```
-
-```
-18:50:03 正在排队中。
-18:50:12 正在处理。
-18:50:17 这次没做成。想让我重试吗？
-```
-
-四个状态对应客户接下来要做的事：`running`（等）、`needs_you`（回一句话）、
-`done`（看结论）、`failed`（决定重试还是换方案）。每条事件是一个 JSON 对象，
-`say` 是给客户的那句话，`evidence` 说明后端到底给了什么：
-
-| evidence | 后端给了什么 | `say` 能说到什么程度 |
-| --- | --- | --- |
-| `structured` | 结构化结果 | 可以报数字 |
-| `step` | 业务步骤 / 失败节点 | 可以报"第几步" |
-| `status` | 只有状态码 | 只能说"正在处理" |
-| `none` | 心跳，这次没新信号 | 只能说"暂时没有新进度" |
-
-措辞永远不超过证据：后端没给步骤时，`say` 不会出现"第 N 步"；没给结构化结果时，
-不会报"共检查 5 项"。所以把 `say` 直接转给客户是安全的。
-
-覆盖范围：`watch rpa`、`watch phone`（开机/关机/重启/重置/新机）、`watch action`。
-长时间没有新信号会补一条心跳，超时会先发一条 `failed` 事件再退出，流不会无声中断。
-`--record` 把事件写进 `~/.pmock-cli/watch/`，`watch log` 可以事后回放。
-
-### 在 Agent 里让它真的看得见
-
-聊天界面里的进度不是平台推出来的，是 Agent 在两次工具调用之间说出来的。所以不要让 Agent
-直接跑阻塞的 `watch`（它要等到任务结束才返回，中间用户什么都看不到），而是：
-
-1. 下发后先 `watch rpa --task-id N --once` 取快照，立刻说"已接单：…"；
-2. 之后用 `watch rpa --task-id N --observe 20s`：有变化立刻返回，没变化最多等 20 秒；
-3. `state` 或 `say` 变了就播报，没变就不说话；
-4. 停在 `done` / `failed` / `needs_you`，最后把结论和选择交给客户。
-
-MCP 侧对应 `pmock_watch`，参数里不写 `observe` 时默认就是 20 秒。`skills/pmock-watch`
-里写死了这个循环，Agent 加载技能后照做即可。
-
----
-
 ## MCP（AI Agent 接入）
+
+`pmock-cli` 可以作为 [MCP](https://modelcontextprotocol.io/) 服务器运行，把全部 CLI 能力
+（云手机、UI 自动化、文件、应用、网络、RPA、商品、团队、账单）以 MCP 工具的形式暴露。
+
+在 MCP 客户端配置里加入下面这段（Trae 的 `~/.trae/mcp/mcp.json`、Cursor 的 `~/.cursor/mcp.json`，
+或 `claude mcp add`）：
 
 ```json
 {
   "mcpServers": {
     "pmock": {
-      "command": "pmock-cli",
-      "args": ["mcp"],
+      "command": "npx",
+      "args": ["-y", "pmock-cli@latest", "mcp"],
       "env": {
         "PMOCK_BASE_URL": "https://user.pmock.com/api",
         "PMOCK_ACCESS_KEY": "AK...",
@@ -425,111 +368,50 @@ MCP 侧对应 `pmock_watch`，参数里不写 `observe` 时默认就是 20 秒�
 }
 ```
 
-工具按模块分组，调用时用 `action` 选择动作，`params` 传参数：
+`npx` 写法不需要先全局安装，Windows / macOS / Linux 都一样，版本也始终跟着 `@latest` 走。
+本机已经装了二进制的话，把 `command` 直接指向它更省事（启动更快，不依赖网络）：
 
 ```json
 {
-  "action": "start",
-  "params": { "id": "1900000000000000123", "wait": true }
+  "mcpServers": {
+    "pmock": {
+      "command": "pmock-cli",
+      "args": ["mcp"]
+    }
+  }
 }
 ```
 
-- 支持 `pmock_phone`、`pmock_phone_action`、`pmock_phone_file`、`pmock_app`、`pmock_network`、`pmock_rpa_template`、`pmock_rpa_task`、`pmock_product`、`pmock_brand`、`pmock_team`、`pmock_task`、`pmock_account`
-- `pmock_help` 可以查询任意命令的完整参数；`pmock_docs` 返回该命令的完整参考页（示例、响应字段、错误处理）
-- 删除、重置等破坏性动作需要 `params.yes = true`
-- **64 位 ID 必须用字符串传**（`"id": "1900000000000000123"`），不要写成 JSON 数字。MCP SDK 按 `float64` 解析数字，超过 2^53 会丢精度，服务端只会看到四舍五入后的 ID，最终报「手机不存在」。直接调用 CLI 时 `--id` 是字符串参数，不受影响
+说明：
 
-### Skills（外部 Agent 技能包）
+- `PMOCK_ACCESS_KEY` / `PMOCK_SECRET_KEY` 必填，可从 PMOCK 客户端获取
+- `PMOCK_BASE_URL` 可选，默认 `https://user.pmock.com/api`
+- 环境变量优先级高于配置文件（`~/.pmock-cli/config.json`）；`env` 块可以整个省略，先跑一次
+`pmock-cli config init` —— MCP 服务器和 CLI 共享同一份配置
+- Windows 上 npm 装出来的是 `pmock-cli.cmd` 垫片，个别客户端不经 shell、无法直接启动它
+（Node 18.20.2 起禁止直接 spawn `.cmd`/`.bat`）。这种情况把 `command` 换成 `cmd`、`args` 换成
+`["/c", "npx", "-y", "pmock-cli@latest", "mcp"]`，或者把 `command` 指向 `%APPDATA%\npm\node_modules\`
+下真实的 `pmock-cli.exe`
 
-仓库根目录的 `skills/` 是给 Claude Code、Cursor、Trae、Cline 这类 Agent 用的技能包，
-和 `pmock-cli commands` 出自同一份 OpenAPI 目录，所以文档不会和命令漂移：
+工具和每个动作要的参数字段，用 `pmock_help` / `pmock_docs` 查；CLI 侧对应 `pmock-cli docs <command>`。
 
-```bash
-npx skills@latest add PMOCK-dot/pmock-cli -g --all -y
+## 项目结构
+
+```text
+cmd/            命令定义（cobra），每个命令组一个文件
+internal/
+  client/       HTTP 客户端、请求签名、响应信封
+  config/       配置文件与环境变量解析
+  output/       JSON / pretty / table 三种渲染
+  progress/     长任务进度状态归一
+  skillgen/     由命令目录生成 skills/ 与 docs/
+  spec/         OpenAPI 目录解析
+  auth/ build/ exitcode/ phonefile/
+openapi/        pmock-openapi.yaml + overlay.yaml（命令的唯一事实来源）
+skills/         给外部 Agent 的技能包（make skills 生成）
+scripts/        install.sh、打包与 npm 发布
+Formula/        Homebrew formula
 ```
-
-- `skills/pmock-shared/` — 认证、响应信封、退出码、风险确认等通用规则（手写）
-- `skills/pmock-phone/` — 云手机命令索引，外加每个命令一页 reference
-- `skills/pmock-watch/` — `watch` 的四个状态、证据阶梯和话术规则（手写页，单独一个技能）
-
-`watch` 也通过 MCP 暴露为 `pmock_watch`（`action` 取 `rpa` / `phone` / `action`）。
-MCP 工具是"一问一答"，所以它默认做 20 秒长轮询：有变化立刻返回，没变化 20 秒后返回当前状态，
-失败任务按正常结果返回而不是工具报错。
-
-维护：
-
-```bash
-make skills          # 按 openapi/ + overlay.yaml 重新生成
-make skills-check    # CI 校验生成物是否过期
-```
-
----
-
-## 故障排查
-
-### MCP 报「手机不存在」，但 CLI 直接调用正常
-
-大整数 ID 被 JSON 数字精度截断了。MCP 工具参数里的 ID 要加引号：
-
-```json
-{ "action": "start", "params": { "id": "1900000000000000123" } }
-```
-
-数字形式在 2^53 以上会丢失末尾几位（例如 `1900000000000000123` 变成 `1900000000000000000`），API 自然查不到这台手机。新版 CLI 遇到这种数字会直接报错并提示改用字符串，而不是把错误 ID 发出去。`--json` 里嵌套的 ID 同理。
-
-### `10123 无效的开发者编号`
-
-通常是环境或团队不匹配：
-
-```bash
-pmock-cli config show
-```
-
-确认：
-
-- base URL 是否正确
-- AK/SK 是否属于同一环境的同一团队
-- 客户端当前选中的团队是否一致
-
-### 有设备但列表为空
-
-先确认版本：
-
-```bash
-pmock-cli version
-```
-
-0.1.4 起已支持 `rows` 分页响应；旧版本可能显示 `data: null`。
-
-### npm 安装后还是旧版本
-
-```bash
-npm install -g pmock-cli@latest --registry=https://registry.npmjs.org --prefer-online
-pmock-cli version
-```
-
-### 配置文件权限
-
-```bash
-chmod 600 ~/.pmock-cli/config.json
-```
-
-### 诊断
-
-```bash
-pmock-cli doctor
-```
-
----
-
-## 安全
-
-- AK/SK 是团队维度凭证，不要提交到仓库或发到公开渠道
-- 配置文件默认 `0600`
-- CI 使用 `PMOCK_ACCESS_KEY` / `PMOCK_SECRET_KEY`
-- `remove`、`reset`、`new` 等不可逆操作需要 `--yes`
-- 输出会隐藏密码、ADB 密码、token 等敏感字段
-- 如果凭证泄露，请在 PMOCK 客户端中重置
 
 ---
 
