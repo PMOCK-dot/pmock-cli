@@ -83,11 +83,19 @@ func runScreenCommand(cmd *cobra.Command, sc *spec.Command, byName map[string]*s
 	ctx, cancel := context.WithTimeout(commandContext(cmd), cfg.Timeout)
 	defer cancel()
 
+	// The composite path builds its own request bodies, so it has to reproduce
+	// the catalog default. GetBool alone returns pflag's false default for an
+	// untouched flag, which would leave every capture in the phone's gallery.
 	isRemove := true
-	if f := cmd.Flags().Lookup("is-remove"); f != nil {
-		if v, ferr := cmd.Flags().GetBool("is-remove"); ferr == nil {
-			isRemove = v
+	if v, ok := sc.BodyDefaults["isRemove"].(bool); ok {
+		isRemove = v
+	}
+	if f := cmd.Flags().Lookup("is-remove"); f != nil && f.Changed {
+		v, ferr := cmd.Flags().GetBool("is-remove")
+		if ferr != nil {
+			return exitcode.Usagef("%v", ferr)
 		}
+		isRemove = v
 	}
 	captures, err := captureScreens(ctx, c, ids, parallel, isRemove)
 	if err != nil {
