@@ -2,6 +2,7 @@ package spec
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -166,6 +167,22 @@ func TestKnownCommands(t *testing.T) {
 	upload := find(t, catalog, "phone file upload-init")
 	if !upload.Internal {
 		t.Error("upload-init should be hidden")
+	}
+}
+
+// TestOverlayCorrectionsReachCommands guards the overlay's escape hatch for
+// wrong upstream prose: a note and a corrected flag description must survive
+// the merge into the command, because the generated skill page and --help both
+// read them from there.
+func TestOverlayCorrectionsReachCommands(t *testing.T) {
+	catalog := loadCatalog(t)
+	list := find(t, catalog, "phone list")
+	if strings.TrimSpace(list.Notes) == "" {
+		t.Fatal("phone list lost the overlay note")
+	}
+	desc := flag(t, list, "page-size").Description
+	if desc == "" || strings.Contains(desc, "最大条数为:1") {
+		t.Errorf("--page-size still carries the upstream description: %q", desc)
 	}
 }
 

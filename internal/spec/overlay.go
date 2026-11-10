@@ -26,6 +26,16 @@ type CommandOverride struct {
 	OperateType string         `yaml:"operate_type,omitempty"`
 	Defaults    map[string]any `yaml:"defaults,omitempty"`
 	Examples    []string       `yaml:"examples,omitempty"`
+	// Notes corrects or augments the upstream OpenAPI prose for one command,
+	// e.g. a parameter description that is wrong in the published spec.
+	// Rendered as a callout on the command's skill page.
+	Notes string `yaml:"notes,omitempty"`
+	// ParamDescriptions replaces the upstream description of individual
+	// flags, keyed by kebab-case flag name. The published spec is generated
+	// from backend annotations and is occasionally wrong (phone list used to
+	// claim page-size was capped at 1), so the correction must reach --help
+	// and the generated tables, not just the skill page.
+	ParamDescriptions map[string]string `yaml:"param_descriptions,omitempty"`
 }
 
 // LoadOverlay parses overlay.yaml.

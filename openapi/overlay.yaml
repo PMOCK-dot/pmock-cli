@@ -24,8 +24,11 @@ commands:
     path: [phone, list]
     aliases: [ls]
     risk: read
+    notes: "拉全量列表先用 `--page-size 100` 取一次，只有 `rows` 少于 `total` 时才按 `--page-num` 继续翻页；不要因为上游写了「最大1条」就按 1 条一页逐页扫。"
+    param_descriptions:
+      page-size: "分页大小，每页显示记录数；上游写的「默认1条、最大1条」有误，实测不传即返回全部，建议传 100 一次取回全部"
     examples:
-      - pmock-cli phone list --page-size 10
+      - pmock-cli phone list --page-size 100
       - pmock-cli phone list --name-or-code demo
       - pmock-cli phone list --status 1 --page-size 100
 

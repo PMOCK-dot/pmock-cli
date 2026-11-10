@@ -84,6 +84,9 @@ type Command struct {
 	OperateType  string
 	BodyDefaults map[string]any
 	Examples     []string
+	// Notes overrides upstream prose that is wrong or incomplete, rendered as
+	// a callout on the skill page. Empty for most commands.
+	Notes string
 
 	Flags []*Flag
 	// ComplexRequired lists required body fields that cannot be a flag
@@ -207,6 +210,7 @@ func buildCommand(doc *Document, ref OperationRef, ov *CommandOverride) (*Comman
 	internal := false
 	async := ""
 	operateType := ""
+	notes := ""
 	var bodyDefaults map[string]any
 	if ov != nil {
 		if len(ov.Path) > 0 {
@@ -217,6 +221,7 @@ func buildCommand(doc *Document, ref OperationRef, ov *CommandOverride) (*Comman
 		internal = ov.Internal
 		async = ov.Async
 		operateType = ov.OperateType
+		notes = ov.Notes
 		bodyDefaults = ov.Defaults
 		if ov.Risk != "" {
 			risk = Risk(ov.Risk)
@@ -242,6 +247,9 @@ func buildCommand(doc *Document, ref OperationRef, ov *CommandOverride) (*Comman
 	if err != nil {
 		return nil, err
 	}
+	if ov != nil {
+		applyParamDescriptions(flags, ov.ParamDescriptions)
+	}
 	resp, respName := ResponseSchema(doc, ref.Op)
 
 	return &Command{
@@ -258,6 +266,7 @@ func buildCommand(doc *Document, ref OperationRef, ov *CommandOverride) (*Comman
 		OperateType:     operateType,
 		BodyDefaults:    bodyDefaults,
 		Examples:        examples,
+		Notes:           notes,
 		Flags:           flags,
 		ComplexRequired: complexRequired,
 		Body:            body,
@@ -282,6 +291,20 @@ func ResponseSchema(doc *Document, op *Operation) (*Schema, string) {
 		return nil, ""
 	}
 	return doc.Resolve(mt.Schema), strings.TrimPrefix(mt.Schema.Ref, "#/components/schemas/")
+}
+
+// applyParamDescriptions overrides flag prose with the overlay's correction.
+// Unknown flag names are ignored: the overlay should stay tolerant when a
+// parameter disappears upstream.
+func applyParamDescriptions(flags []*Flag, overrides map[string]string) {
+	if len(overrides) == 0 {
+		return
+	}
+	for _, f := range flags {
+		if desc, ok := overrides[f.Name]; ok && strings.TrimSpace(desc) != "" {
+			f.Description = desc
+		}
+	}
 }
 
 func buildFlags(doc *Document, op *Operation, body *Schema) ([]*Flag, []string, error) {

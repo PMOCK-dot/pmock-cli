@@ -62,6 +62,7 @@ func renderCommand(sk Skill, c *spec.Command, doc *spec.Document, opts Options) 
 	b.WriteString("\n")
 
 	writeFlags(&b, c)
+	writeNotes(&b, c)
 	writeExamples(&b, c, opts)
 	writeBody(&b, c, doc)
 	writeResponse(&b, c, doc)
@@ -129,6 +130,18 @@ func writeFlags(b *strings.Builder, c *spec.Command) {
 		b.WriteString("> 嵌套对象或数组字段用 `--json '<object>'` 或 `--json @file.json` 传入，" +
 			"会与上面的 flag 合并。\n\n")
 	}
+}
+
+// writeNotes renders the overlay's correction for a command, as a blockquote
+// right below the parameter table where the wrong prose would be read.
+func writeNotes(b *strings.Builder, c *spec.Command) {
+	notes := strings.TrimSpace(c.Notes)
+	if notes == "" {
+		return
+	}
+	b.WriteString("> **注意**：")
+	b.WriteString(strings.ReplaceAll(notes, "\n", "\n> "))
+	b.WriteString("\n\n")
 }
 
 func writeExamples(b *strings.Builder, c *spec.Command, opts Options) {
