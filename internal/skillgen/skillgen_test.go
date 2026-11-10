@@ -3,6 +3,7 @@ package skillgen
 import (
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -116,6 +117,64 @@ func TestSkillFrontmatter(t *testing.T) {
 			t.Errorf("%s description is %d characters", sk.Name, n)
 		}
 	}
+}
+
+// TestSkillDescriptionsAreEnglish guards the catalog convention: the
+// frontmatter description is the routing surface a skill loader indexes, so it
+// stays English even though bodies are written for a Chinese-speaking operator.
+// A Chinese description silently degrades matching against English skill
+// catalogs and makes the tree look half-translated.
+func TestSkillDescriptionsAreEnglish(t *testing.T) {
+	han := regexp.MustCompile(`\p{Han}`)
+	descriptions := map[string]string{}
+	for _, sk := range DefaultSkills() {
+		descriptions[sk.Name] = sk.Description
+	}
+	shared, err := os.ReadFile("../../skills/pmock-shared/SKILL.md")
+	if err != nil {
+		t.Fatalf("read hand-written skill: %v", err)
+	}
+	descriptions["pmock-shared"] = frontmatterDescription(t, string(shared))
+
+	for name, desc := range descriptions {
+		switch {
+		case strings.TrimSpace(desc) == "":
+			t.Errorf("%s has an empty description", name)
+		case han.MatchString(desc):
+			t.Errorf("%s description must be English, got %q", name, desc)
+		}
+		if !strings.HasPrefix(desc, "PMOCK ") {
+			t.Errorf("%s description should start with \"PMOCK \", got %q", name, desc)
+		}
+		if !strings.Contains(desc, "Use when") {
+			t.Errorf("%s description should say when to load it (\"Use when ...\")", name)
+		}
+	}
+}
+
+// frontmatterDescription returns the unquoted description of a SKILL.md page.
+func frontmatterDescription(t *testing.T, page string) string {
+	t.Helper()
+	rest, ok := strings.CutPrefix(page, "---\n")
+	if !ok {
+		t.Fatal("page has no frontmatter")
+	}
+	fm, _, ok := strings.Cut(rest, "\n---\n")
+	if !ok {
+		t.Fatal("frontmatter is not terminated")
+	}
+	for _, line := range strings.Split(fm, "\n") {
+		raw, ok := strings.CutPrefix(line, "description: ")
+		if !ok {
+			continue
+		}
+		if unquoted, err := strconv.Unquote(raw); err == nil {
+			return unquoted
+		}
+		return strings.Trim(raw, `"`)
+	}
+	t.Fatal("frontmatter has no description")
+	return ""
 }
 
 func TestLinksResolve(t *testing.T) {

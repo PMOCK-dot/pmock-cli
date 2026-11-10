@@ -165,6 +165,8 @@ version 和 4 个 sha256。
 
 - Go 代码通过 `gofmt`，提交前跑 `make check`
 - 新增用户可见文案保持中文；命令/flag 使用英文
+- Agent 技能（`skills/`）：frontmatter 的 `description` 用英文，以 `PMOCK ` 开头、包含 `Use when ...`；
+  正文和标题用中文；命令、flag、JSON 字段名不翻译（`go test ./internal/skillgen` 会校验这一点）
 - 不在日志、错误、测试快照里输出真实 AK/SK
 - 修改输出层时确认脱敏字段仍然生效（`password`、`adbPassword`、`accessKey`、`token`）
 - 破坏性命令必须在 overlay 标 `destructive`，并在需要时要求 `--yes`

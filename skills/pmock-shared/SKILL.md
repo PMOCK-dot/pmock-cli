@@ -1,7 +1,7 @@
 ---
 name: pmock-shared
 version: 1.0.0
-description: "PMOCK CLI 通用规则：安装、AK/SK 认证、响应信封、退出码、风险确认、输出格式与异步任务。使用 pmock-cli 前先读这一篇。"
+description: "PMOCK CLI shared rules: installation, AK/SK authentication, response envelope, exit codes, risk confirmation, output formats and async tasks. Use when starting with pmock-cli, setting up credentials, or reading its output; read this first before any other PMOCK skill."
 metadata:
   requires:
     bins: ["pmock-cli"]
