@@ -11,6 +11,27 @@ import (
 	"testing"
 )
 
+func TestDeferredActivityOnlyForPowerStateChanges(t *testing.T) {
+	tests := []struct {
+		path []string
+		want bool
+	}{
+		{[]string{"phone", "start"}, true},
+		{[]string{"phone", "restart"}, true},
+		{[]string{"phone", "reset"}, true},
+		{[]string{"phone", "stop"}, false},
+		{[]string{"phone", "screen"}, false},
+		{[]string{"phone", "action", "click"}, false},
+		{[]string{"app", "install"}, false},
+		{nil, false},
+	}
+	for _, tt := range tests {
+		if got := DeferredActivity(tt.path); got != tt.want {
+			t.Errorf("DeferredActivity(%v) = %v, want %v", tt.path, got, tt.want)
+		}
+	}
+}
+
 func TestDescribeActivityUsesIDOrCode(t *testing.T) {
 	tests := []struct {
 		name        string

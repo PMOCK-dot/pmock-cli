@@ -405,3 +405,167 @@ func TestMCPCallToolReportsToClientBridge(t *testing.T) {
 		t.Fatalf("applied event = %+v", events[1])
 	}
 }
+
+// bridgeRecorder is a fake PMOCK desktop client that also notes how many
+// events had arrived by the time the API request reached the backend.
+type bridgeRecorder struct {
+	mu     sync.Mutex
+	events []clientbridge.Event
+	base   int
+	during int
+}
+
+func newBridgeRecorder(t *testing.T) *bridgeRecorder {
+	t.Helper()
+	rec := &bridgeRecorder{during: -1}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var event clientbridge.Event
+		if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+			t.Errorf("decode event: %v", err)
+		}
+		rec.mu.Lock()
+		rec.events = append(rec.events, event)
+		rec.mu.Unlock()
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	t.Cleanup(srv.Close)
+
+	port := srv.Listener.Addr().(*net.TCPAddr).Port
+	runtimePath := filepath.Join(t.TempDir(), "runtime.json")
+	runtimeJSON := fmt.Sprintf(
+		`{"port":%d,"token":"test-token","pid":1,"startedAt":"2026-11-05T03:00:00.000Z"}`, port)
+	if err := os.WriteFile(runtimePath, []byte(runtimeJSON), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PMOCK_CLIENT_RUNTIME", runtimePath)
+	t.Setenv("PMOCK_CLIENT_LINK", "1")
+	return rec
+}
+
+// beginCall marks the current event count so onRequest can report the delta.
+func (r *bridgeRecorder) beginCall() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.base = len(r.events)
+	r.during = -1
+}
+
+// onRequest runs from the fake backend and snapshots the delta.
+func (r *bridgeRecorder) onRequest() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.during = len(r.events) - r.base
+}
+
+func (r *bridgeRecorder) eventsDuringRequest() int {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.during
+}
+
+func (r *bridgeRecorder) all() []clientbridge.Event {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return append([]clientbridge.Event(nil), r.events...)
+}
+
+func (r *bridgeRecorder) reset() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.events = nil
+	r.base = 0
+	r.during = -1
+}
+
+func newBridgeTestServer(t *testing.T) *mcpServer {
+	t.Helper()
+	t.Setenv("PMOCK_CLI_CONFIG", t.TempDir()+"/none.json")
+	t.Setenv("PMOCK_ACCESS_KEY", "AK")
+	t.Setenv("PMOCK_SECRET_KEY", "SK")
+	catalog := testCatalog(t)
+	return &mcpServer{catalog: catalog, tools: buildMCPTools(catalog)}
+}
+
+func TestMCPPowerStateActivityWaitsForTheRequest(t *testing.T) {
+	rec := newBridgeRecorder(t)
+	apiSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rec.onRequest()
+		_, _ = w.Write([]byte(`{"traceId":"t","code":200,"msg":"ok","data":{}}`))
+	}))
+	defer apiSrv.Close()
+	t.Setenv("PMOCK_BASE_URL", apiSrv.URL+"/api")
+
+	s := newBridgeTestServer(t)
+	tool := mcpToolByName(t, s.tools, "pmock_phone")
+
+	rec.beginCall()
+	res, _, err := s.callTool(context.Background(), tool, mcpArgs{
+		Action: "start",
+		Params: map[string]any{"id": float64(123)},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected error result: %s", resultText(t, res))
+	}
+	if got := rec.eventsDuringRequest(); got != 0 {
+		t.Fatalf("activity events sent before the start request = %d, want 0", got)
+	}
+	events := rec.all()
+	if len(events) != 2 {
+		t.Fatalf("events = %+v, want activity + applied", events)
+	}
+	if events[0].Kind != "activity" || events[0].Action != "powerOn" {
+		t.Fatalf("activity = %+v", events[0])
+	}
+	if events[1].Kind != "applied" {
+		t.Fatalf("applied = %+v", events[1])
+	}
+
+	// Screenshots keep the immediate "Agent is operating" semantics: the badge
+	// must show while the request runs, not after it returns.
+	rec.reset()
+	rec.beginCall()
+	res, _, err = s.callTool(context.Background(), tool, mcpArgs{
+		Action: "screen",
+		Params: map[string]any{"id": float64(123)},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected error result: %s", resultText(t, res))
+	}
+	if got := rec.eventsDuringRequest(); got != 1 {
+		t.Fatalf("activity events sent before the screen request = %d, want 1", got)
+	}
+}
+
+func TestMCPPowerStateActivityIsSkippedWhenTheRequestFails(t *testing.T) {
+	rec := newBridgeRecorder(t)
+	apiSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rec.onRequest()
+		_, _ = w.Write([]byte(`{"traceId":"t","code":500,"msg":"boot failed","data":{}}`))
+	}))
+	defer apiSrv.Close()
+	t.Setenv("PMOCK_BASE_URL", apiSrv.URL+"/api")
+
+	s := newBridgeTestServer(t)
+	tool := mcpToolByName(t, s.tools, "pmock_phone")
+
+	rec.beginCall()
+	res, _, err := s.callTool(context.Background(), tool, mcpArgs{
+		Action: "start",
+		Params: map[string]any{"id": float64(123)},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.IsError {
+		t.Fatalf("a failed start must be a tool error: %s", resultText(t, res))
+	}
+	if events := rec.all(); len(events) != 0 {
+		t.Fatalf("events = %+v, want none after a failed start", events)
+	}
+}

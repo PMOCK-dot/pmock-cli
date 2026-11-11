@@ -292,32 +292,47 @@ func reportCLIActivityToClient(g *globals, cmd *cobra.Command) {
 	if !g.linkClient || g.dryRun || testing.Testing() {
 		return
 	}
+	// Power-state changes are deferred to the post-run hook so the client does
+	// not open a remote window onto a phone that is still off.
+	deferred := clientbridge.DeferredActivity(cliCommandPath(cmd))
 	for _, ev := range cliCommandEvents(cmd) {
-		if ev.Kind != "activity" {
+		if ev.Kind != "activity" || deferred {
 			continue
 		}
 		reportCLIEvent(ev)
 	}
 }
 
-// reportCLICommandToClient sends the post-success "data changed" signal. The
-// activity signal is already sent in PersistentPreRunE so a long --wait still
-// lights up the client immediately.
+// reportCLICommandToClient sends the post-success signals: deferred activity
+// (power-state changes only, now that the API accepted them) followed by the
+// "data changed" refresh. The other activity events were already sent in
+// PersistentPreRunE so a long --wait still lights up the client immediately.
 func reportCLICommandToClient(g *globals, cmd *cobra.Command) {
 	if !g.linkClient || g.dryRun || testing.Testing() {
 		return
 	}
+	deferred := clientbridge.DeferredActivity(cliCommandPath(cmd))
 	for _, ev := range cliCommandEvents(cmd) {
-		if ev.Kind != "applied" {
-			continue
+		switch {
+		case ev.Kind == "activity" && deferred:
+			reportCLIEvent(ev)
+		case ev.Kind == "applied":
+			reportCLIEvent(ev)
 		}
-		reportCLIEvent(ev)
 	}
 }
 
-func cliCommandEvents(cmd *cobra.Command) []clientbridge.Event {
+func cliCommandPath(cmd *cobra.Command) []string {
 	path := strings.Fields(cmd.CommandPath())
 	if len(path) < 2 {
+		return nil
+	}
+	return path[1:]
+}
+
+func cliCommandEvents(cmd *cobra.Command) []clientbridge.Event {
+	path := cliCommandPath(cmd)
+	if len(path) == 0 {
 		return nil
 	}
 	params := make(map[string]any)
@@ -326,7 +341,7 @@ func cliCommandEvents(cmd *cobra.Command) []clientbridge.Event {
 			params[f.Name] = f.Value.String()
 		}
 	})
-	return clientbridge.Describe(path[1:], params)
+	return clientbridge.Describe(path, params)
 }
 
 func reportCLIEvent(ev clientbridge.Event) {

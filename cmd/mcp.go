@@ -292,11 +292,14 @@ func (s *mcpServer) callTool(ctx context.Context, t *mcpTool, args mcpArgs) (*mc
 	}
 
 	// Announce the phone operation before a potentially long --wait, so the
-	// desktop client shows "Agent is operating" while it runs. Only activity is
-	// sent here; the refresh signal waits for success.
+	// desktop client shows "Agent is operating" while it runs. Power-state
+	// changes are the exception: they are announced only after the API accepted
+	// the request, otherwise the client opens a remote window onto a phone that
+	// is still off. Only activity is sent here; refresh waits for success.
 	bridgeEvents := clientbridge.Describe(action.Path, args.Params)
+	deferredActivity := clientbridge.DeferredActivity(action.Path)
 	for _, ev := range bridgeEvents {
-		if ev.Kind == "activity" {
+		if ev.Kind == "activity" && !deferredActivity {
 			_ = clientbridge.Report(ctx, ev)
 		}
 	}
@@ -334,7 +337,13 @@ func (s *mcpServer) callTool(ctx context.Context, t *mcpTool, args mcpArgs) (*mc
 
 	// If a PMOCK desktop client is running, mirror the refresh signal its own
 	// MCP tools emit. This is optional and fail-open: a missing client must
-	// never fail or noticeably delay the tool call.
+	// never fail or noticeably delay the tool call. Deferred activity goes out
+	// first so the badge still precedes the refresh.
+	for _, ev := range bridgeEvents {
+		if ev.Kind == "activity" && deferredActivity {
+			_ = clientbridge.Report(ctx, ev)
+		}
+	}
 	for _, ev := range bridgeEvents {
 		if ev.Kind == "applied" {
 			_ = clientbridge.Report(ctx, ev)

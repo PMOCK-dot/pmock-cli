@@ -169,6 +169,20 @@ func Describe(path []string, params map[string]any) []Event {
 	return events
 }
 
+// DeferredActivity reports whether a command's activity event must wait until
+// the command succeeds. Power-state changes (start / restart / reset) are
+// deferred: shouting "Agent is powering on" before the request makes the
+// desktop client open its remote window while the phone is still off, so the
+// window lands on a shutdown screen and never recovers. Every other operation
+// keeps the immediate badge semantics.
+func DeferredActivity(path []string) bool {
+	if len(path) == 0 {
+		return false
+	}
+	meta, ok := commandMeta[strings.Join(path, " ")]
+	return ok && meta.afterSuccess
+}
+
 // commandMeta is the CLI mirror of the client tool metadata (activity/affects/
 // settleMs). Keeping it here means the client does not need to know CLI paths.
 type commandMetaEntry struct {
@@ -176,14 +190,18 @@ type commandMetaEntry struct {
 	key      string // "id" or "code"; empty means no activity
 	scopes   []string
 	settleMS int
+	// afterSuccess defers the activity event until the API accepted the
+	// command. Power-state changes need it: reporting before the request opens
+	// the desktop client's remote window onto a phone that is still off.
+	afterSuccess bool
 }
 
 var commandMeta = map[string]commandMetaEntry{
 	// Phone lifecycle / maintenance.
-	"phone start":               {action: "powerOn", key: "id", scopes: []string{"cloudPhones"}, settleMS: 5000},
+	"phone start":               {action: "powerOn", key: "id", scopes: []string{"cloudPhones"}, settleMS: 5000, afterSuccess: true},
 	"phone stop":                {action: "powerOff", key: "id", scopes: []string{"cloudPhones"}, settleMS: 5000},
-	"phone restart":             {action: "restart", key: "id", scopes: []string{"cloudPhones"}, settleMS: 5000},
-	"phone reset":               {action: "reset", key: "id", scopes: []string{"cloudPhones"}},
+	"phone restart":             {action: "restart", key: "id", scopes: []string{"cloudPhones"}, settleMS: 5000, afterSuccess: true},
+	"phone reset":               {action: "reset", key: "id", scopes: []string{"cloudPhones"}, afterSuccess: true},
 	"phone new":                 {action: "oneNew", key: "id", scopes: []string{"cloudPhones"}},
 	"phone clear":               {action: "clear", key: "id", scopes: []string{"cloudPhones"}},
 	"phone remove":              {action: "delete", key: "id", scopes: []string{"cloudPhones"}},
