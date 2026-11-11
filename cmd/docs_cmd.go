@@ -39,12 +39,21 @@ skills/), which also documents examples and response fields.`,
 			}
 			path := strings.Join(args, " ")
 			if markdown {
-				doc, ok := readReference(skills, path)
-				if !ok {
-					return exitcode.Usagef("no reference page for %q; run `pmock-cli docs` to list groups", path)
+				canonical := canonicalCommand(catalog, path)
+				if canonical == "" && !commandExists(catalog, path) {
+					return exitcode.Usagef("%v; run `pmock-cli docs` to list groups", unknownCommand(catalog, path))
 				}
-				fmt.Fprintln(out, doc)
-				return nil
+				// Commands the reference tree does not cover (doctor, mcp,
+				// version) still have help; fall through to it instead of
+				// failing on a --markdown that cannot be honoured.
+				page := canonical
+				if page == "" {
+					page = path
+				}
+				if doc, ok := readReference(skills, page); ok {
+					fmt.Fprintln(out, doc)
+					return nil
+				}
 			}
 			if path == "phone file upload" {
 				printUploadDoc(out)

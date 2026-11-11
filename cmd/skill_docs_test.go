@@ -87,6 +87,67 @@ func TestMCPFailureAttachesReference(t *testing.T) {
 	}
 }
 
+func TestCanonicalCommandResolvesAliases(t *testing.T) {
+	cat := testCatalog(t)
+	cases := map[string]string{
+		"phone list":   "phone list",
+		"phone ls":     "phone list",
+		"phone rm":     "phone remove",
+		"phone new":    "phone new",
+		"phone one-ne": "",
+		"nope":         "",
+		"phone nope":   "",
+	}
+	for in, want := range cases {
+		if got := canonicalCommand(cat, in); got != want {
+			t.Errorf("canonicalCommand(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+// A typo must be rejected with the valid next segments, not answered with the
+// parent command's help as if it were the requested command.
+func TestMCPHelpRejectsUnknownSubcommand(t *testing.T) {
+	cat := testCatalog(t)
+	s := &mcpServer{catalog: cat, tools: buildMCPTools(cat)}
+
+	res := s.helpResult(context.Background(), "phone nonexistent")
+	if !res.IsError {
+		t.Fatalf("expected an error, got help text: %s", resultText(t, res))
+	}
+	text := resultText(t, res)
+	if !strings.Contains(text, "phone nonexistent") || !strings.Contains(text, "adb") {
+		t.Fatalf("error should name the bad path and the valid ones: %s", text)
+	}
+
+	// Aliases are real command paths, so they must keep working.
+	res = s.helpResult(context.Background(), "phone ls")
+	if res.IsError {
+		t.Fatalf("alias rejected: %s", resultText(t, res))
+	}
+}
+
+func TestMCPDocsResolvesAliasAndFallsBackToHelp(t *testing.T) {
+	cat := testCatalog(t)
+	s := &mcpServer{catalog: cat, tools: buildMCPTools(cat), skills: testSkills(t)}
+
+	res := s.docsResult("phone ls")
+	if res.IsError || !strings.Contains(resultText(t, res), "# phone list") {
+		t.Fatalf("alias did not reach the canonical page: %s", resultText(t, res))
+	}
+
+	// doctor has no generated page but is a real command: answer with help.
+	res = s.docsResult("doctor")
+	if res.IsError || !strings.Contains(resultText(t, res), "[Help: pmock-cli doctor]") {
+		t.Fatalf("doctor fallback: %s", resultText(t, res))
+	}
+
+	res = s.docsResult("phone not-a-command")
+	if !res.IsError || !strings.Contains(resultText(t, res), "unknown command") {
+		t.Fatalf("typo should stay an error: %s", resultText(t, res))
+	}
+}
+
 func TestDocsMarkdown(t *testing.T) {
 	cmd := newDocsCmd(testCatalog(t), testSkills(t))
 	cmd.SilenceErrors, cmd.SilenceUsage = true, true

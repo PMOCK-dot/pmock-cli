@@ -15,7 +15,9 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -170,7 +172,7 @@ func newMCPCmd(catalog *spec.Catalog, skills fs.FS) *cobra.Command {
 				s.registerTool(srv, t)
 			}
 
-			if err := srv.Run(ctx, &mcp.StdioTransport{}); err != nil && !isMCPShutdown(err) {
+			if err := srv.Run(ctx, &drainOnEOFTransport{inner: &mcp.StdioTransport{}}); err != nil && !isMCPShutdown(err) {
 				return err
 			}
 			return nil
@@ -194,25 +196,44 @@ func (s *mcpServer) registerHelp(srv *mcp.Server) {
 			"\"phone start\", \"phone file upload\", \"rpa task add\". Call this before an " +
 			"action whose flags you do not know. An empty command returns the root help.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, args helpArgs) (*mcp.CallToolResult, any, error) {
-		parts := strings.Fields(args.Command)
-		for _, p := range parts {
-			if !commandTokenRe.MatchString(p) {
-				return mcpError("invalid command token: " + p), nil, nil
-			}
-		}
-		stdout, stderr, err := s.runHelp(ctx, parts)
-		text := strings.TrimSpace(stdout)
-		if text == "" {
-			text = strings.TrimSpace(stderr)
-		}
-		if text == "" && err != nil {
-			text = err.Error()
-		}
-		if text == "" {
-			text = "no help available"
-		}
-		return mcpText(text), nil, nil
+		return s.helpResult(ctx, args.Command), nil, nil
 	})
+}
+
+// helpResult answers one pmock_help call.
+func (s *mcpServer) helpResult(ctx context.Context, rawCommand string) *mcp.CallToolResult {
+	parts := strings.Fields(rawCommand)
+	for _, p := range parts {
+		if !commandTokenRe.MatchString(p) {
+			return mcpError("invalid command token: " + p)
+		}
+	}
+	if len(parts) > 0 {
+		if err := s.checkCommand(parts); err != nil {
+			return mcpError(err.Error())
+		}
+	}
+	stdout, stderr, err := s.runHelp(ctx, parts)
+	text := strings.TrimSpace(stdout)
+	if text == "" {
+		text = strings.TrimSpace(stderr)
+	}
+	if text == "" && err != nil {
+		text = err.Error()
+	}
+	if text == "" {
+		text = "no help available"
+	}
+	return mcpText(text)
+}
+
+// checkCommand rejects a path that is not a real command instead of letting
+// cobra fall back to the parent's help.
+func (s *mcpServer) checkCommand(parts []string) error {
+	if commandExists(s.catalog, strings.Join(parts, " ")) {
+		return nil
+	}
+	return unknownCommand(s.catalog, strings.Join(parts, " "))
 }
 
 // registerDocs exposes the generated reference pages. The pages carry what
@@ -245,9 +266,19 @@ func (s *mcpServer) docsResult(rawCommand string) *mcp.CallToolResult {
 			return mcpError("invalid command token: " + p)
 		}
 	}
+	// An alias ("phone ls") is a real way to name the command, so it has to
+	// find the page its canonical form owns.
+	if canonical := canonicalCommand(s.catalog, command); canonical != "" {
+		command = canonical
+	}
 	doc, ok := readReference(s.skills, command)
 	if !ok {
-		return mcpError("no reference page for \"" + command + "\"; call pmock_help for raw flag help")
+		// Commands the reference tree does not cover (doctor, mcp, version)
+		// still exist; answer with their help text instead of a dead end.
+		if s.checkCommand(strings.Fields(command)) == nil {
+			return mcpText(s.helpText(context.Background(), strings.Fields(command)))
+		}
+		return mcpError(unknownCommand(s.catalog, command).Error())
 	}
 	return mcpText(doc)
 }
@@ -305,8 +336,12 @@ func (s *mcpServer) callTool(ctx context.Context, t *mcpTool, args mcpArgs) (*mc
 	}
 
 	stdout, stderr, err := s.runCLI(ctx, argv)
-	if t.Name == "pmock_watch" && exitcode.CodeOf(err) == exitcode.Business {
-		// "failed" is a normal terminal state of a task, not a tool error.
+	if t.Name == "pmock_watch" && exitcode.CodeOf(err) == exitcode.Business &&
+		strings.TrimSpace(stdout) != "" {
+		// "failed" is a normal terminal state of a task, not a tool error — but
+		// only when the event carrying that state actually reached stdout. A
+		// watch that died without emitting anything is a tool error, and
+		// swallowing it here would report success for a task nobody watched.
 		err = nil
 	}
 	text := strings.TrimSpace(stdout)
@@ -687,4 +722,103 @@ func isMCPShutdown(err error) bool {
 	}
 	var rpcErr *jsonrpc.Error
 	return errors.As(err, &rpcErr) && rpcErr.Code == -32004
+}
+
+// eofDrainTimeout bounds how long a closing stdin is held off while the last
+// unanswered call finishes. A handler that cannot answer in this window is not
+// going to answer at all.
+const eofDrainTimeout = 5 * time.Second
+
+// drainOnEOFTransport delays stdin EOF until every call that already arrived
+// has been answered.
+//
+// Without it, `printf '<initialize>' | pmock-cli mcp` can exit before writing a
+// single byte: the SDK treats EOF as a disconnect and cancels in-flight
+// requests, so the response is dropped. Interactive clients never hit this
+// because they keep the pipe open, but scripted probes and one-shot harnesses
+// do, and they read the silence as "the server is broken".
+type drainOnEOFTransport struct {
+	inner mcp.Transport
+}
+
+// Connect implements mcp.Transport.
+func (t *drainOnEOFTransport) Connect(ctx context.Context) (mcp.Connection, error) {
+	conn, err := t.inner.Connect(ctx)
+	if err != nil {
+		return nil, err
+	}
+	d := &drainingConn{Connection: conn}
+	d.idle = sync.NewCond(&d.mu)
+	return d, nil
+}
+
+// drainingConn counts calls that arrived but have not been answered yet.
+type drainingConn struct {
+	mcp.Connection
+	mu      sync.Mutex
+	idle    *sync.Cond
+	pending int
+	closed  bool
+}
+
+// Read implements mcp.Connection: EOF waits for the calls already read.
+func (c *drainingConn) Read(ctx context.Context) (jsonrpc.Message, error) {
+	msg, err := c.Connection.Read(ctx)
+	if !errors.Is(err, io.EOF) {
+		if err == nil {
+			c.track(msg)
+		}
+		return msg, err
+	}
+
+	// Never wait past the grace window: a stuck handler must not pin the
+	// process open.
+	timer := time.AfterFunc(eofDrainTimeout, func() {
+		c.mu.Lock()
+		c.closed = true
+		c.mu.Unlock()
+		c.idle.Broadcast()
+	})
+	defer timer.Stop()
+
+	c.mu.Lock()
+	for c.pending > 0 && !c.closed {
+		c.idle.Wait()
+	}
+	c.mu.Unlock()
+	return msg, err
+}
+
+// Write implements mcp.Connection and retires the answered call.
+func (c *drainingConn) Write(ctx context.Context, msg jsonrpc.Message) error {
+	err := c.Connection.Write(ctx, msg)
+	if _, ok := msg.(*jsonrpc.Response); ok {
+		c.mu.Lock()
+		if c.pending > 0 {
+			c.pending--
+		}
+		c.mu.Unlock()
+		c.idle.Broadcast()
+	}
+	return err
+}
+
+// Close implements mcp.Connection and releases any waiter.
+func (c *drainingConn) Close() error {
+	c.mu.Lock()
+	c.closed = true
+	c.mu.Unlock()
+	c.idle.Broadcast()
+	return c.Connection.Close()
+}
+
+// track records an inbound call so Read can wait for its response.
+func (c *drainingConn) track(msg jsonrpc.Message) {
+	req, ok := msg.(*jsonrpc.Request)
+	if !ok || !req.ID.IsValid() {
+		return
+	}
+	c.mu.Lock()
+	c.pending++
+	c.mu.Unlock()
 }

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/PMOCK-dot/pmock-cli/internal/client"
 )
 
 type scriptedAdapter struct {
@@ -116,6 +118,58 @@ func TestRunnerHeartbeatSaysNothingNew(t *testing.T) {
 	}
 	if hb.Say != "还在进行，暂时没有新的进度。" {
 		t.Fatalf("say = %q", hb.Say)
+	}
+}
+
+func TestRunnerPollErrorStillEndsWithAFailedEvent(t *testing.T) {
+	ad := &scriptedAdapter{kind: "rpa", err: &client.APIError{Code: 500, Msg: "无效的任务编号", TraceID: "t"}}
+	clock := &fakeClock{t: time.Unix(0, 0)}
+	var events []Event
+	r := newRunner(ad, clock, func(e Event) error { events = append(events, e); return nil })
+
+	last, err := r.Run(context.Background())
+	if err == nil {
+		t.Fatal("expected the poll error to surface")
+	}
+	if last.State != StateFailed {
+		t.Fatalf("last = %+v, want a failed event", last)
+	}
+	if len(events) != 1 || events[0].State != StateFailed {
+		t.Fatalf("events = %+v, want one failed event before the error", events)
+	}
+	// The sentence carries the API message, not the code and trace id.
+	if !strings.Contains(last.Say, "无效的任务编号") || strings.Contains(last.Say, "traceId") {
+		t.Fatalf("say = %q", last.Say)
+	}
+}
+
+func TestRunnerPollCancellationStaysSilent(t *testing.T) {
+	ad := &scriptedAdapter{kind: "rpa", err: context.Canceled}
+	clock := &fakeClock{t: time.Unix(0, 0)}
+	var events []Event
+	r := newRunner(ad, clock, func(e Event) error { events = append(events, e); return nil })
+
+	if _, err := r.Run(context.Background()); !errors.Is(err, context.Canceled) {
+		t.Fatalf("err = %v", err)
+	}
+	if len(events) != 0 {
+		t.Fatalf("a cancelled watch must not emit a failure: %+v", events)
+	}
+}
+
+func TestRunnerObservePollErrorEndsWithAFailedEvent(t *testing.T) {
+	ad := &scriptedAdapter{kind: "rpa", err: errors.New("connection reset")}
+	clock := &fakeClock{t: time.Unix(0, 0)}
+	var events []Event
+	r := newRunner(ad, clock, func(e Event) error { events = append(events, e); return nil })
+	r.Observe = 20 * time.Second
+
+	last, err := r.Run(context.Background())
+	if err == nil {
+		t.Fatal("expected the poll error to surface")
+	}
+	if last.State != StateFailed || len(events) != 1 {
+		t.Fatalf("last = %+v events = %+v", last, events)
 	}
 }
 

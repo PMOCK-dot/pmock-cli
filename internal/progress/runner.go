@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 	"time"
+
+	"github.com/PMOCK-dot/pmock-cli/internal/client"
 )
 
 // ErrTimeout means the task did not reach a terminal state before the deadline.
@@ -84,7 +87,7 @@ func (r *Runner) Run(ctx context.Context) (Event, error) {
 	for {
 		obs, err := r.Adapter.Poll(ctx)
 		if err != nil {
-			return last, err
+			return r.pollFailed(last, seq, now, err)
 		}
 		if cerr := ctx.Err(); cerr != nil {
 			return last, cerr
@@ -167,6 +170,49 @@ func evidenceOf(o Observation) Evidence {
 	}
 }
 
+// pollFailed turns a failed poll into a terminal failed event before the error
+// reaches the caller. Without it a watch that cannot read the task at all would
+// exit non-zero with an empty stdout, and a consumer (the MCP server above all)
+// would see "no event" rather than "this task failed" — the opposite of the
+// promise that the stream never stops without an explanation.
+//
+// A cancelled context stays silent: the caller asked to stop, that is not a
+// failure of the work.
+func (r *Runner) pollFailed(last Event, seq int, now func() time.Time, err error) (Event, error) {
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return last, err
+	}
+	ev := Event{
+		At:       now(),
+		Kind:     r.Adapter.Kind(),
+		Seq:      seq + 1,
+		State:    StateFailed,
+		Evidence: EvidenceStatus,
+		Reason:   pollFailureReason(err),
+	}
+	ev.Say = Copy(ev)
+	if r.Emit != nil {
+		if emitErr := r.Emit(ev); emitErr != nil {
+			return ev, emitErr
+		}
+	}
+	return ev, err
+}
+
+// pollFailureReason keeps the customer sentence readable: an API error already
+// carries its message, and its code and trace id belong in a log, not in copy.
+func pollFailureReason(err error) string {
+	var apiErr *client.APIError
+	if errors.As(err, &apiErr) && strings.TrimSpace(apiErr.Msg) != "" {
+		return strings.TrimSpace(apiErr.Msg)
+	}
+	msg := strings.TrimSpace(err.Error())
+	if msg == "" || msg == "null" {
+		return ""
+	}
+	return msg
+}
+
 func materialChange(prev, next Event) bool {
 	if prev.State != next.State || prev.Step != next.Step || prev.Total != next.Total {
 		return true
@@ -220,7 +266,7 @@ func (r *Runner) observe(ctx context.Context, now func() time.Time, sleep func(c
 	for {
 		obs, err := r.Adapter.Poll(ctx)
 		if err != nil {
-			return base, err
+			return r.pollFailed(base, 0, now, err)
 		}
 		ev := r.event(obs, now())
 		if first {
